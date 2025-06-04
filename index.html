@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YDIARWBWRBTGOLAJTHAWYBA - Simulator v8</title> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #1a202c; color: #e2e8f0; }
+        .game-container { max-width: 1100px; margin: 0.5rem auto; padding: 1rem; background-color: #2d3748; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .btn { padding: 0.5rem 0.8rem; border-radius: 0.375rem; font-weight: 600; transition: background-color 0.2s ease-in-out; cursor: pointer; border: none; font-size: 0.8rem; }
+        .btn-primary { background-color: #4a5568; color: #e2e8f0; }
+        .btn-primary:hover { background-color: #2c5282; }
+        .btn-action, .btn-romance, .btn-world, .btn-age-specific { background-color: #38a169; color: white; }
+        .btn-action:hover, .btn-romance:hover, .btn-world:hover, .btn-age-specific:hover { background-color: #2f855a; }
+        .btn-world { background-color: #d69e2e; } 
+        .btn-world:hover { background-color: #b08026; }
+        .btn-danger { background-color: #c53030; color: white; }
+        .btn-danger:hover { background-color: #9b2c2c; }
+        .btn-info { background-color: #3182ce; color: white; }
+        .btn-info:hover { background-color: #2b6cb0; }
+        .btn-battle { background-color: #97266d; color: white; }
+        .btn-battle:hover { background-color: #702459; }
+        .btn-dungeon { background-color: #dd6b20; color: white; } 
+        .btn-dungeon:hover { background-color: #c05621; }
+        .btn-save { background-color: #b7791f; color: white; } 
+        .btn-save:hover { background-color: #975a16; }
+        .btn-bag { background-color: #63b3ed; color: white; } 
+        .btn-bag:hover { background-color: #4299e1; }
+        .btn-tavern { background-color: #a0aec0; color: #1a202c; }
+        .btn-tavern:hover { background-color: #718096; }
+        .btn-shop { background-color: #ecc94b; color: #1a202c; }
+        .btn-shop:hover { background-color: #d69e2e; }
+        .btn-confess { background-color: #d53f8c; color: white; } 
+        .btn-confess:hover { background-color: #b83280; }
+
+
+        .character-sheet div, .log-entry { padding: 0.15rem 0.3rem; border-bottom: 1px solid #4a5568; font-size: 0.78rem; }
+        .character-sheet div:last-child, .log-entry:last-child { border-bottom: none; }
+        .title-font { font-family: 'MedievalSharp', cursive; }
+        .game-title-header { font-size: 1.1rem; line-height: 1.2; }
+        @media (min-width: 640px) { .game-title-header { font-size: 1.3rem; } }
+        @media (min-width: 1024px) { .game-title-header { font-size: 1.5rem; } }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 1rem; }
+        .modal-content { background-color: #2d3748; padding: 1.5rem; border-radius: 0.5rem; text-align: center; max-width: 90%; width: 450px; border: 2px solid #4a5568; }
+        .hidden { display: none !important; }
+        .action-button-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.3rem; }
+        .progress-bar-container { width: 100%; background-color: #4a5568; border-radius: 0.25rem; overflow: hidden; height: 0.8rem; margin-top: 0.15rem; }
+        .progress-bar { height: 100%; text-align: center; line-height: 0.8rem; color: white; font-size: 0.65rem; transition: width 0.3s ease-in-out; }
+        .hp-bar { background-color: #c53030; } 
+        .xp-bar { background-color: #3182ce; } 
+        .relationship-bar { background-color: #d53f8c; } 
+        .dungeon-time-bar { background-color: #dd6b20; }
+        .stat-value { font-weight: bold; color: #a0aec0; }
+        .item-name { color: #63b3ed; } 
+        .item-effect { color: #9f7aea; }
+        .accolade-name, .title-name { color: #f6e05e; } 
+        .gold-value { color: #f6e05e; font-weight: bold;}
+        .class-choice-card { background-color: #4a5568; padding: 0.8rem; border-radius: 0.375rem; margin-bottom: 0.5rem; cursor: pointer; }
+        .class-choice-card:hover { background-color: #2c5282; }
+        .class-choice-card h4 { font-size: 1em; margin-bottom: 0.2em; }
+        .class-choice-card p { font-size: 0.8em; margin-bottom: 0.1em; }
+        .character-sheet h4 { font-size: 0.85em; margin-top: 0.5rem; }
+
+        #itemBagModal .item-slot, #shopModal .shop-item-slot {
+            background-color: #3f4a5a;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative; 
+        }
+        #itemBagModal .item-slot .item-name, #shopModal .shop-item-slot .item-name {
+            font-weight: bold;
+            color: #63b3ed;
+            flex-grow: 1;
+            text-align: left;
+        }
+        #itemBagModal .item-slot .btn-equip, #shopModal .shop-item-slot .btn-buy {
+            background-color: #38a169;
+            color: white;
+            margin-left: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+        }
+        #itemBagModal .item-slot .btn-equip:hover, #shopModal .shop-item-slot .btn-buy:hover {
+            background-color: #2f855a;
+        }
+        .item-tooltip {
+            position: absolute;
+            background-color: #1a202c;
+            border: 1px solid #4a5568;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            z-index: 101; 
+            bottom: 100%; 
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            margin-bottom: 5px; 
+            pointer-events: none; 
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .item-slot:hover .item-tooltip, .shop-item-slot:hover .item-tooltip { 
+            opacity: 1;
+        }
+         #shopModal .shop-item-cost {
+            color: #f6e05e; 
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+        }
+        /* Companion List Styles */
+        #charCompanionsList .companion-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #3a4150;
+        }
+        #charCompanionsList .companion-entry:last-child {
+            border-bottom: none;
+        }
+        #charCompanionsList .companion-name {
+            font-weight: 600;
+            color: #90cdf4; /* Light blue for names */
+        }
+        #charCompanionsList .companion-type {
+            font-style: italic;
+            color: #a0aec0;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="game-container">
+        <h1 id="gameTitle" class="game-title-header font-bold text-center mb-3 title-font">
+            You Died in a Random Way But Was Reborn by the Primordial Goddess of Love and Justice to Help a World Where You're Born Anew
+        </h1>
+        
+        <div id="initialLoadPrompt" class="text-center hidden"></div>
+        <div id="occupationSelection" class="text-center hidden"></div>
+        <div id="classSelection" class="hidden">
+            <h2 id="classSelectionTitle" class="text-xl md:text-2xl mb-3 text-center title-font">The Goddess Offers You a Path...</h2>
+            <p id="classSelectionIntro" class="text-center mb-3"></p>
+            <div id="classChoicesContainer"></div>
+        </div>
+        <div id="eventDisplay" class="hidden mt-4">
+             <h2 id="eventTitleElem" class="text-xl md:text-2xl mb-2"></h2>
+             <p id="eventTextElem" class="mb-3 text-md md:text-lg"></p>
+             <button id="continueButtonElem" class="btn btn-primary mx-auto block">Continue</button>
+        </div>
+
+        <div id="newLifeInterface" class="hidden mt-4">
+            <div class="grid md:grid-cols-3 gap-3">
+                <div id="characterSheet" class="md:col-span-1 bg-gray-700 p-2 rounded overflow-y-auto max-h-[90vh]">
+                    <h3 class="text-md font-semibold mb-1 title-font">Character Sheet</h3>
+                    <div id="charDate"></div>
+                    <div id="charName"></div>
+                    <div id="charAge"></div>
+                    <div id="charGold"></div> 
+                    <div id="charWorld"></div>
+                    <div id="charRank"></div>
+                    <div id="charHP"></div>
+                    <div id="charRankXP"></div>
+                    <div id="charClass"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Elemental Spirit:</h4>
+                    <div id="charElementalSpirit"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Companions:</h4>
+                    <div id="charCompanionsList"></div> <div id="charChildren"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Stats (Base):</h4>
+                    <div id="charBaseStats"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Effective Stats (w/ Items & Spirit):</h4>
+                    <div id="charEffectiveStats"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Accolades:</h4>
+                    <div id="charAccolades"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Titles:</h4>
+                    <div id="charTitles"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Equipment:</h4>
+                    <div id="charEquipment"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Treasures:</h4>
+                    <div id="charTreasures"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Blessings:</h4>
+                    <div id="charBlessings"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Curses:</h4>
+                    <div id="charCurses"></div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <div id="worldActionsContainer">
+                         <h3 class="text-md font-semibold mb-1 title-font">World Actions:</h3>
+                         <div id="actionsContainer" class="action-button-container mb-2"></div>
+                         <button id="saveGameButtonUI" class="btn btn-save w-full mb-2">Save Game</button>
+                         <button id="itemBagButtonUI" class="btn btn-bag w-full mb-2">Item Bag</button>
+                         <button id="advanceYearButtonUI" class="btn btn-primary w-full mb-2">Sleep till Next Year</button>
+                    </div>
+                    <div id="dungeonInterface" class="hidden">
+                         <h3 id="dungeonName" class="text-md font-semibold mb-1 title-font"></h3>
+                         <div id="dungeonStatus"></div>
+                         <div id="dungeonActionsContainer" class="action-button-container mt-1">
+                             <button id="dungeonExploreButton" class="btn btn-dungeon">Explore Deeper</button>
+                             <button id="dungeonRestButton" class="btn btn-info">Rest (1 Turn)</button>
+                             <button id="dungeonFleeButton" class="btn btn-danger">Flee Dungeon</button>
+                         </div>
+                    </div>
+                    <h3 class="text-md font-semibold mt-2 mb-1 title-font">Event Log:</h3>
+                    <div id="eventLog" class="bg-gray-700 p-2 rounded max-h-40 overflow-y-auto text-xs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="messageModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modalTitle" class="text-xl title-font mb-3">Notification</h3>
+            <p id="modalMessageText" class="text-md mb-4"></p>
+            <button id="modalCloseButton" class="btn btn-primary">OK</button>
+        </div>
+    </div>
+
+    <div id="elementalSpiritModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="spiritModalTitle" class="text-xl title-font mb-3">A Spirit Appears!</h3>
+            <p id="spiritModalMessage" class="text-md mb-4"></p>
+            <div class="flex justify-center gap-4">
+                <button id="bondSpiritButton" class="btn btn-action">Attempt to Bond</button>
+                <button id="declineSpiritButton" class="btn btn-danger">Decline</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="itemBagModal" class="modal hidden">
+        <div class="modal-content !text-left max-w-lg"> 
+            <h3 class="text-xl title-font mb-3 text-center">Item Bag</h3>
+            <div id="itemBagContent" class="max-h-80 overflow-y-auto pr-2"> 
+            </div>
+            <button id="closeItemBagButton" class="btn btn-primary mt-4 w-full">Close Bag</button>
+        </div>
+    </div>
+
+    <div id="shopModal" class="modal hidden">
+        <div class="modal-content !text-left max-w-lg">
+            <h3 id="shopName" class="text-xl title-font mb-3 text-center">Welcome to the Shop!</h3>
+            <p class="text-center mb-2">Your Gold: <span id="shopPlayerGold" class="gold-value">0</span></p>
+            <div id="shopInventory" class="max-h-80 overflow-y-auto pr-2">
+            </div>
+            <button id="closeShopButton" class="btn btn-primary mt-4 w-full">Leave Shop</button>
+        </div>
+    </div>
+
+
+    <script>
+        const SAVE_KEY = "isekaiLifeSim_YDIARWBWRBTGOLAJTHAWYBA_v8_social_list"; 
+        const RANKS = ["F", "E", "D", "C", "B", "A", "S"];
+        const RANK_XP_THRESHOLDS = [0, 50, 150, 300, 500, 800, 1200]; 
+        const COMPANION_NAMES = ["Elara", "Ronan", "Seraphina", "Kael", "Lyra", "Jasper", "Astrid", "Finnian", "Aiko", "Kenji", "Leif", "Brynn", "Corbin", "Isolde", "Rowan", "Mira", "Gideon", "Clara"];
+        const CHILD_NAMES = ["Leo", "Mia", "Noel", "Iris", "Sam", "Chloe", "Alex", "Zoe", "Ren", "Yuki"];
+        const JAPANESE_NAME_ROOTS = ["Aki", "Haru", "Ken", "Yoshi", "Masa", "Nao", "Ryo", "Shin", "Taka", "Yumi", "Kaz", "Dai", "Ren", "Sora", "Kai", "Hana", "Yuki", "Ai", "Mei", "Saki"];
+        const JAPANESE_NAME_ENDINGS = ["hiro", "hiko", "jiro", "suke", "kazu", "masa", "aki", "nosuke", "maru", "ko", "mi", "ka", "na", "ya", "to", "ru", "ma", "ne", "ri"];
+        const DAYS_IN_MONTH = 30; 
+        const MONTHS_IN_YEAR = 12;
+        const FRIENDSHIP_TO_ROMANCE_THRESHOLD = 60;
+        const MIN_ROMANCE_AGE = 16;
+        const CHILD_BEARING_BOND_LEVEL = 80;
+
+        const gameData = {
+            occupations: [ 
+                { 
+                    name: "Software Developer", 
+                    deathScenarios: ["Chair collapse critical error.", "Server explosion.", "Electrocution via energy drink."],
+                    classChoices: [
+                        { name: "Techno-Mancer", description: "Blends logic with magic.", baseStats: { STR: 6, DEX: 8, CON: 10, INT: 15, WIS: 12, CHA: 9, LUCK: 5, MANA: 120 }, equipment: [{ name: "Traveler's Clothes", type: "armor", stats: { CON: 1 } }, { name: "Satchel", type: "misc", stats: {} }, { name: "Codex of Runes", type: "weapon", stats: { INT: 2, MANA: 10 } }], blessings: ["Systemic Thought"], curses: ["Mundane Origin"] },
+                        { name: "Data Scryer", description: "Sees patterns in mana like data streams.", baseStats: { STR: 5, DEX: 7, CON: 9, INT: 16, WIS: 14, CHA: 8, LUCK: 6, MANA: 130 }, equipment: [{ name: "Analyst's Robes", type: "armor", stats: { INT: 1 } }, { name: "Scrying Lens", type: "misc", stats: { WIS: 1 } }, { name: "Note-taking Quill", type: "weapon", stats: { INT: 1 } }], blessings: ["Mana Sight"], curses: ["Physically Weak"] },
+                        { name: "Automation Golemancer", description: "Animates constructs with logical precision.", baseStats: { STR: 7, DEX: 6, CON: 11, INT: 14, WIS: 10, CHA: 10, LUCK: 5, MANA: 110 }, equipment: [{ name: "Artisan's Garb", type: "armor", stats: { STR: 1 } }, { name: "Tool Kit", type: "misc", stats: {} }, { name: "Blueprint Scraps", type: "weapon", stats: { CON: 1 } }], blessings: ["Efficient Crafting"], curses: ["Socially Awkward"] }
+                    ]
+                },
+                { 
+                    name: "Chef",
+                    deathScenarios: ["Fatal grease fire.", "Slip with boiling soup.", "Mistaken ingredient."],
+                    classChoices: [
+                        { name: "Alchemic Cook", description: "Infuses food with potion effects.", baseStats: { STR: 8, DEX: 10, CON: 12, INT: 10, WIS: 13, CHA: 11, LUCK: 6, MANA: 100 }, equipment: [{ name: "Sturdy Apron", type: "armor", stats: { CON: 1 } }, { name: "Chef's Knife", type: "weapon", stats: { DEX: 1 } }, { name: "Spice Pouch", type: "misc", stats: {} }], blessings: ["Enhanced Palate"], curses: ["Aroma Magnet"] },
+                        { name: "Battle Gourmand", description: "Fights with culinary tools and invigorating meals.", baseStats: { STR: 11, DEX: 9, CON: 13, INT: 8, WIS: 10, CHA: 12, LUCK: 5, MANA: 90 }, equipment: [{ name: "Reinforced Chef's Whites", type: "armor", stats: { STR: 1 } }, { name: "Cleaver", type: "weapon", stats: { STR: 2 } }, { name: "Iron Skillet", type: "misc", stats: { CON: 1 } }], blessings: ["Hearty Constitution"], curses: ["Always Hungry"] },
+                        { name: "Tavern Keeper Sage", description: "Gathers info and offers surprisingly good advice.", baseStats: { STR: 7, DEX: 8, CON: 10, INT: 12, WIS: 14, CHA: 13, LUCK: 7, MANA: 90 }, equipment: [{ name: "Comfortable Clothes", type: "armor", stats: { CHA: 1 } }, { name: "Coin Pouch", type: "misc", stats: {} }, { name: "Recipe Book", type: "weapon", stats: { WIS: 1 } }], blessings: ["People Person"], curses: ["Slightly Overweight"] }
+                    ]
+                },
+                 {
+                    name: "High School Student",
+                    deathScenarios: ["Texting into manhole.", "Science fair explosion.", "Cafeteria mystery meat."],
+                    classChoices: [
+                        { name: "Generic Hero Protagonist", description: "Surprisingly adaptable.", baseStats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10, LUCK: 7, MANA: 100 }, equipment: [{ name: "School Uniform", type: "armor", stats: {} }, { name: "Smartphone (no signal)", type: "misc", stats: {} }, { name: "Textbook", type: "weapon", stats: { INT: 1 } }], blessings: ["Plot Armor (Minor)"], curses: ["Oblivious"] },
+                        { name: "Bookish Magic Aspirant", description: "Dreamt of magic.", baseStats: { STR: 7, DEX: 8, CON: 9, INT: 14, WIS: 13, CHA: 8, LUCK: 6, MANA: 120 }, equipment: [{ name: "Thick Glasses", type: "misc", stats: { INT: 1 } }, { name: "Fantasy Novels", type: "misc", stats: {} }, { name: "Library Card", type: "misc", stats: {} }], blessings: ["Quick Study (Magic)"], curses: ["Physically Frail"] },
+                        { name: "Sporty Brawler", description: "All brawn, some agility.", baseStats: { STR: 13, DEX: 12, CON: 12, INT: 8, WIS: 8, CHA: 9, LUCK: 5, MANA: 80 }, equipment: [{ name: "Tracksuit", type: "armor", stats: { DEX: 1 } }, { name: "Sneakers", type: "misc", stats: { DEX: 1 } }, { name: "Water Bottle", type: "misc", stats: {} }], blessings: ["Athletic Prowess"], curses: ["Not a Thinker"] }
+                    ]
+                },
+                {
+                    name: "Art Student",
+                    deathScenarios: ["Turpentine incident.", "Sculpture fell.", "Critiqued to death."],
+                    classChoices: [
+                        { name: "Illusion Weaver", description: "Paints reality with mana.", baseStats: { STR: 6, DEX: 9, CON: 8, INT: 13, WIS: 12, CHA: 14, LUCK: 7, MANA: 110 }, equipment: [{ name: "Art Smock", type: "armor", stats: { CHA: 1 } }, { name: "Enchanted Brush Set", type: "weapon", stats: { INT: 2 } }, { name: "Sketchbook", type: "misc", stats: {} }], blessings: ["Creative Flow"], curses: ["Easily Distracted"] },
+                        { name: "Bardic Muse", description: "Inspires through performance art.", baseStats: { STR: 7, DEX: 10, CON: 9, INT: 11, WIS: 11, CHA: 15, LUCK: 6, MANA: 100 }, equipment: [{ name: "Stylish Outfit", type: "armor", stats: { CHA: 2 } }, { name: "Lute (slightly damaged)", type: "weapon", stats: { CHA: 1 } }, { name: "Songbook", type: "misc", stats: {} }], blessings: ["Charming Presence"], curses: ["Stage Fright (Initially)"] },
+                        { name: "Runic Sculptor", description: "Carves power into materials.", baseStats: { STR: 8, DEX: 7, CON: 10, INT: 14, WIS: 10, CHA: 9, LUCK: 5, MANA: 120 }, equipment: [{ name: "Sturdy Apron", type: "armor", stats: { STR: 1 } }, { name: "Chisels", type: "weapon", stats: { INT: 1 } }, { name: "Clay Molds", type: "misc", stats: {} }], blessings: ["Steady Hand"], curses: ["Perfectionist"] }
+                    ]
+                },
+                {
+                    name: "Engineering Student",
+                    deathScenarios: ["Bridge collapse simulation too real.", "Robot uprising (small scale).", "Soldering iron mishap."],
+                    classChoices: [
+                        { name: "Trap Master", description: "Designs intricate magical traps.", baseStats: { STR: 7, DEX: 11, CON: 9, INT: 15, WIS: 12, CHA: 8, LUCK: 6, MANA: 100 }, equipment: [{ name: "Toolbelt", type: "misc", stats: {} }, { name: "Safety Goggles", type: "misc", stats: {} }, { name: "Mechanical Parts", type: "misc", stats: {} }], blessings: ["Problem Solver"], curses: ["Overly Complex Plans"] },
+                        { name: "Siege Artificer", description: "Builds mana-powered siege engines.", baseStats: { STR: 9, DEX: 6, CON: 12, INT: 14, WIS: 10, CHA: 9, LUCK: 5, MANA: 110 }, equipment: [{ name: "Heavy Work Clothes", type: "armor", stats: { CON: 1 } }, { name: "Wrench Set", type: "weapon", stats: { STR: 1 } }, { name: "Drafting Tools", type: "misc", stats: {} }], blessings: ["Structural Integrity"], curses: ["Needs More Resources"] },
+                        { name: "Mana-Circuit Engineer", description: "Optimizes mana flow in devices.", baseStats: { STR: 6, DEX: 8, CON: 8, INT: 16, WIS: 13, CHA: 7, LUCK: 7, MANA: 130 }, equipment: [{ name: "Lab Coat", type: "armor", stats: { INT: 1 } }, { name: "Fine Wires", type: "misc", stats: {} }, { name: "Magnifying Glass", type: "misc", stats: { WIS: 1 } }], blessings: ["Logical Precision"], curses: ["Energy Fluctuations"] }
+                    ]
+                }
+            ],
+            worlds: [ 
+                { 
+                    id: "veridia", 
+                    name: "Veridia, Land of Conflict",
+                    description: "Veridia is besieged by the forces of the Demon King Xylar. Your destiny may be to stand against this encroaching darkness.",
+                    theme: "demon_king",
+                    lateGameActions: [
+                        { id: "veridia_fortress", name: "Assault Demon Fortress", timeCost: 15, hpCostRange: [40,70], rankXP: 50, result: "A brutal siege, but the fortress falls! Lost {hpLost} HP.", rankReq: "A", isWorldSpecific: true, isBattle: true, grantsTitle: { id: "fortress_breaker", name: "Fortress Breaker", chance: 0.25 }, difficultyBonus: 2.5, significantEvent: true },
+                        { id: "veridia_blade", name: "Seek Legendary Blade", timeCost: 20, hpCostRange: [10,30], rankXP: 30, result: "After a long quest, you find the Sunfire Blade! Took {hpLost} HP in trials.", rankReq: "A", isWorldSpecific: true, effects: {STR: 5, LUCK: 2}, difficultyBonus: 2.0, grantsItem: { name: "Sunfire Blade", type: "weapon", stats: { STR: 10, LUCK: 2, MANA: 10 }, significant: true }, significantEvent: true },
+                        { id: "veridia_demon_king", name: "Confront Demon King Xylar", timeCost: 10, hpCostRange: [60,100], rankXP: 100, result: "The final battle! You defeated Xylar, but at great cost: {hpLost} HP. Veridia is saved!", rankReq: "S", isWorldSpecific: true, isBattle: true, isGameEnd: true, grantsTitle: { id: "hero_of_veridia", name: "Hero of Veridia", chance: 1.0 }, difficultyBonus: 3.0, significantEvent: true } 
+                    ]
+                },
+                {
+                    id: "aethelgard",
+                    name: "Aethelgard, Realm of Ancient Magic",
+                    description: "Aethelgard is a world steeped in forgotten lore, where ancient magical constructs awaken and the very fabric of magic is unraveling. Seek the heart of the mystery.",
+                    theme: "arcane_mystery",
+                    lateGameActions: [
+                        { id: "aethel_tablets", name: "Decipher Chronos Tablets", timeCost: 25, hpCostRange: [5,15], rankXP: 40, result: "The tablets reveal secrets of creation! Mental strain cost {hpLost} HP.", rankReq: "A", isWorldSpecific: true, effects: {INT: 3, WIS: 3}, difficultyBonus: 1.5, significantEvent: true },
+                        { id: "aethel_wellspring", name: "Stabilize Mana Wellspring", timeCost: 10, hpCostRange: [20,50], rankXP: 35, result: "You channeled immense power to stabilize the wellspring. Lost {hpLost} HP.", rankReq: "A", isWorldSpecific: true, effects: {MANA: 20}, grantsTitle: { id: "wellspring_guardian", name: "Wellspring Guardian", chance: 0.3 }, difficultyBonus: 2.0, significantEvent: true },
+                        { id: "aethel_guardian", name: "Confront Awakened Guardian", timeCost: 12, hpCostRange: [50,80], rankXP: 60, result: "The ancient guardian tested your worth. You prevailed, losing {hpLost} HP.", rankReq: "S", isWorldSpecific: true, isBattle: true, grantsTitle: {id: "ancient_vanquisher", name: "Ancient Vanquisher", chance: 0.5}, difficultyBonus: 2.8, significantEvent: true },
+                        { id: "aethel_arch_chancellor", name: "Become Arch-Chancellor", timeCost: 5, hpCostRange: [0,5], rankXP: 0, result: "Your wisdom guides Aethelgard to a new era of magical balance. Took {hpLost} HP from stress. Aethelgard is at peace.", rankReq: "S", isWorldSpecific: true, isGameEnd: true, requiresStats: {INT: 25, WIS: 25, CHA: 20}, grantsTitle: {id: "arch_chancellor_aethel", name: "Arch-Chancellor of Aethelgard", chance: 1.0}, difficultyBonus: 0.5, significantEvent: true }
+                    ]
+                },
+                {
+                    id: "solara",
+                    name: "Solara, The Sunken World",
+                    description: "You awaken in Solara, a world once vibrant, now mostly submerged. Pockets of civilization cling to high plateaus and floating islands. Survival and rediscovery are paramount.",
+                    theme: "exploration_survival",
+                    lateGameActions: [
+                        { id: "solara_sunken_city", name: "Explore Sunken City", timeCost: 30, hpCostRange: [10,40], rankXP: 50, result: "You navigated the dangerous depths of the sunken city, finding ancient treasures but losing {hpLost} HP.", rankReq: "A", isWorldSpecific: true, effects: {LUCK: 3, INT: 2}, difficultyBonus: 2.0, grantsItem: { name: "Coral Circlet", type: "misc", stats: { WIS: 2, MANA: 15 }, significant: true }, significantEvent: true },
+                        { id: "solara_leviathan", name: "Subdue Grand Leviathan", timeCost: 25, hpCostRange: [50,90], rankXP: 70, result: "The colossal Leviathan was a fierce foe, but you managed to subdue it, taking {hpLost} HP damage.", rankReq: "S", isWorldSpecific: true, isBattle: true, grantsTitle: { id: "leviathan_tamer", name: "Leviathan Tamer", chance: 0.75 }, difficultyBonus: 3.2, significantEvent: true },
+                        { id: "solara_resurface", name: "Initiate Resurface Protocol", timeCost: 40, hpCostRange: [20,60], rankXP: 80, result: "Against all odds, you activated the ancient machinery, beginning Solara's resurfacing! A arduous task that cost {hpLost} HP. Solara slowly rises again.", rankReq: "S", isWorldSpecific: true, isGameEnd: true, requiresStats: {INT: 20, WIS: 20, CON: 20}, grantsTitle: { id: "savior_of_solara", name: "Savior of Solara", chance: 1.0 }, difficultyBonus: 2.5, significantEvent: true }
+                    ]
+                }
+            ],
+            elementalSpirits: [
+                {
+                    id: "fairy_of_verdure", name: "Fairy of Verdure", type: "Fairy", description: "A mischievous spirit tied to nature's vibrant growth.",
+                    baseBoosts: { DEX: 1, LUCK: 1 }, boostPerLevel: { DEX: 0.5, LUCK: 0.2 }, maxBondLevel: 5,
+                    bondMessages: ["The fairy flits around you, a comfortable presence.", "Your bond with the fairy deepens, you feel lighter and luckier.", "The fairy hums a joyful tune, imbuing you with its nimble energy.", "You understand the fairy's whispers, gaining insight into fortunate paths.", "The fairy is a constant companion, its verdant magic flowing through you, enhancing your grace." ]
+                },
+                {
+                    id: "ember_dragonling", name: "Ember Dragonling", type: "Dragon", description: "A small, fiery dragon, fierce yet loyal.",
+                    baseBoosts: { STR: 2, CON: 1 }, boostPerLevel: { STR: 1, CON: 0.5 }, maxBondLevel: 3,
+                    bondMessages: ["The dragonling nuzzles your hand, a spark of warmth.", "Your connection to the dragonling solidifies, granting you greater strength and resilience.", "The dragonling's fiery spirit emboldens you, its power growing within your core." ]
+                },
+                {
+                    id: "mana_wisp", name: "Mana Wisp", type: "Wisp", description: "A shimmering orb of pure mana, drawn to magical aptitude.",
+                    baseBoosts: { INT: 1, MANA: 10 }, boostPerLevel: { INT: 0.5, MANA: 5 }, maxBondLevel: 4,
+                    bondMessages: ["The wisp gently pulses near you, a calming arcane aura.", "You feel mana coalesce around the wisp, enhancing your own reserves and intellect.", "The wisp dances with increased vibrancy, amplifying your spells and thoughts.", "The wisp is a reservoir of arcane energy, a true partner in your magical endeavors." ]
+                },
+                {
+                    id: "stone_golem_shard", name: "Stone Golem Shard", type: "Golem", description: "A living fragment of an ancient construct, strong and unyielding.",
+                    baseBoosts: { STR: 1, CON: 2 }, boostPerLevel: { STR: 0.5, CON: 1 }, maxBondLevel: 3,
+                    bondMessages: ["A solid presence emanates from the shard, grounding your power.", "The shard resonates with your will, fortifying your defenses and might.", "The golem shard grants you unwavering stability and formidable power." ]
+                },
+            ],
+            ageSpecificActions: [
+                { id: "play_kids", name: "Play with Local Kids", timeCost: 2, ageMin: 8, ageMax: 12, effects: { CHA: 0.3, LUCK: 0.2, XP: 2 }, result: "You spent time playing with other children, making new friends and having fun. Your charm and luck improved slightly.", buttonClass: "btn-age-specific" },
+                { id: "childhood_adventure", name: "Childhood Adventure (Explore)", timeCost: 4, ageMin: 8, ageMax: 12, effects: { DEX: 0.2, LUCK: 0.3, XP: 3 }, result: "You explored the nearby woods, finding interesting trinkets and navigating tricky paths. Your agility and luck saw slight improvement.", grantsItemChance: 0.1, itemPool: [{ name: "Shiny Pebble", type: "misc", stats: {LUCK: 0.1} }], buttonClass: "btn-age-specific" },
+                { id: "listen_elder", name: "Listen to Elder's Stories", timeCost: 1, ageMin: 8, ageMax: 14, effects: { WIS: 0.3, XP: 2 }, result: "You listened intently to the village elder's tales of old, gaining a bit of wisdom.", buttonClass: "btn-age-specific" },
+                { id: "odd_jobs", name: "Do Odd Jobs", timeCost: 5, ageMin: 13, ageMax: 17, effects: { STR: 0.2, CON: 0.1, XP: 5, GOLD: 5 }, result: "You helped around the village with various tasks, earning a small sum of gold and building some strength.", buttonClass: "btn-age-specific" },
+                { id: "first_quest_pest", name: "First Quest: Pest Extermination", timeCost: 7, ageMin: 13, ageMax: 17, effects: { XP: 10, GOLD: 15 }, resultSuccess: "You successfully cleared out the pests plaguing the farmer's field! You earned some gold and valuable experience.", resultFail: "The pests were more numerous than expected. You managed to escape but took some bruises.", hpCostFail: [5, 10], combatCheck: { stat: "STR", difficulty: 8 }, buttonClass: "btn-age-specific", significantEvent: true },
+            ],
+            utilityActions: [
+                 { id: "visit_tavern", name: "Visit Tavern", timeCost: 1, ageMin: 13, goldCost: 5, effects: { HEAL_PERCENT: 0.25, CHA: 0.1 }, result: "You spent some time at the tavern, enjoying a hearty meal and drink. You feel refreshed and a bit more sociable.", buttonClass: "btn-tavern", significantEvent: false }, 
+                 { id: "visit_shop", name: "Visit Shop", timeCost: 1, ageMin: 13, result: "You head to the local shop to see what's available.", buttonClass: "btn-shop", significantEvent: true }, 
+                 { id: "seek_companion", name: "Seek Companion", timeCost: 3, buttonClass: "btn-romance", significantEvent: true }, 
+                 { id: "confess_feelings", name: "Confess Feelings", timeCost: 2, buttonClass: "btn-confess", significantEvent: true } 
+            ],
+            shopItems: [
+                { id: "healing_potion_sm", name: "Small Healing Potion", type: "consumable", effect: { heal: 20 }, cost: 10, description: "Restores 20 HP." },
+                { id: "rusty_sword", name: "Rusty Sword", type: "weapon", stats: { STR: 1 }, cost: 25, description: "A basic, somewhat worn sword." },
+                { id: "leather_vest", name: "Leather Vest", type: "armor", stats: { CON: 1 }, cost: 30, description: "Simple leather protection." },
+                { id: "mana_potion_sm", name: "Small Mana Potion", type: "consumable", effect: { mana: 15 }, cost: 15, description: "Restores 15 Mana." }
+            ]
+        };
+
+        let player = {};
+        let currentDungeon = null;
+        let gameEnded = false;
+        let eventInProgress = false; 
+        let currentSpiritEncounter = null; 
+
+        const initialLoadPrompt = document.getElementById('initialLoadPrompt');
+        const occupationSelection = document.getElementById('occupationSelection');
+        const classSelection = document.getElementById('classSelection');
+        const classSelectionTitle = document.getElementById('classSelectionTitle');
+        const classSelectionIntro = document.getElementById('classSelectionIntro');
+        const classChoicesContainer = document.getElementById('classChoicesContainer');
+        const newLifeInterface = document.getElementById('newLifeInterface');
+        const charDate = document.getElementById('charDate');
+        const charName = document.getElementById('charName');
+        const charAge = document.getElementById('charAge');
+        const charGold = document.getElementById('charGold'); 
+        const charWorld = document.getElementById('charWorld');
+        const charRank = document.getElementById('charRank');
+        const charHP = document.getElementById('charHP');
+        const charRankXP = document.getElementById('charRankXP');
+        const charClass = document.getElementById('charClass');
+        const charCompanionsList = document.getElementById('charCompanionsList'); 
+        const charChildren = document.getElementById('charChildren');
+        const charBaseStats = document.getElementById('charBaseStats');
+        const charEffectiveStats = document.getElementById('charEffectiveStats');
+        const charAccolades = document.getElementById('charAccolades');
+        const charTitles = document.getElementById('charTitles');
+        const charEquipment = document.getElementById('charEquipment');
+        const charTreasures = document.getElementById('charTreasures');
+        const charBlessings = document.getElementById('charBlessings');
+        const charCurses = document.getElementById('charCurses');
+        const actionsContainer = document.getElementById('actionsContainer');
+        const eventLog = document.getElementById('eventLog');
+        const advanceYearButtonUI = document.getElementById('advanceYearButtonUI');
+        const saveGameButtonUI = document.getElementById('saveGameButtonUI');
+        const eventDisplay = document.getElementById('eventDisplay');
+        const eventTitleElem = document.getElementById('eventTitleElem');
+        const eventTextElem = document.getElementById('eventTextElem');
+        const continueButtonElem = document.getElementById('continueButtonElem');
+        const dungeonInterface = document.getElementById('dungeonInterface');
+        const dungeonNameElem = document.getElementById('dungeonName');
+        const dungeonStatusElem = document.getElementById('dungeonStatus');
+        const dungeonExploreButton = document.getElementById('dungeonExploreButton');
+        const dungeonRestButton = document.getElementById('dungeonRestButton');
+        const dungeonFleeButton = document.getElementById('dungeonFleeButton');
+        const worldActionsContainer = document.getElementById('worldActionsContainer');
+        const messageModal = document.getElementById('messageModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessageText = document.getElementById('modalMessageText');
+        const modalCloseButton = document.getElementById('modalCloseButton');
+        const charElementalSpirit = document.getElementById('charElementalSpirit');
+        const elementalSpiritModal = document.getElementById('elementalSpiritModal');
+        const spiritModalTitleElem = document.getElementById('spiritModalTitle'); 
+        const spiritModalMessageElem = document.getElementById('spiritModalMessage'); 
+        const bondSpiritButton = document.getElementById('bondSpiritButton');
+        const declineSpiritButton = document.getElementById('declineSpiritButton');
+        const itemBagButtonUI = document.getElementById('itemBagButtonUI');
+        const itemBagModal = document.getElementById('itemBagModal');
+        const itemBagContent = document.getElementById('itemBagContent');
+        const closeItemBagButton = document.getElementById('closeItemBagButton');
+        const shopModal = document.getElementById('shopModal');
+        const shopNameElem = document.getElementById('shopName');
+        const shopPlayerGoldElem = document.getElementById('shopPlayerGold');
+        const shopInventoryElem = document.getElementById('shopInventory');
+        const closeShopButton = document.getElementById('closeShopButton');
+
+
+        function initGame() {
+            const savedGame = loadGame();
+            if (savedGame) {
+                player = savedGame;
+                if (player.inventory === undefined) player.inventory = [];
+                if (player.bondedSpirit === undefined) player.bondedSpirit = null;
+                if (player.equipment === undefined || Array.isArray(player.equipment)) { 
+                     player.equipment = { weapon: null, armor: null, misc: null };
+                }
+                if (player.gold === undefined) player.gold = 10; 
+                if (player.currentDate === undefined) { 
+                    player.age = player.age || (Math.floor(Math.random() * 5) + 8); // 8-12
+                    player.currentDate = { year: player.age, month: 1, day: 1 };
+                }
+                if (player.companions === undefined) player.companions = []; // Initialize companions array
+                // Ensure each companion has an id
+                player.companions.forEach(comp => {
+                    if(!comp.id) comp.id = Date.now() + Math.random();
+                    if(comp.metAtAge === undefined) comp.metAtAge = player.age -1; // Estimate if not present
+                });
+
+
+                showNewLifeInterface();
+                updateUI();
+                logEvent(`Game loaded! Welcome back, ${player.name}.`);
+                if (player.inDungeon) {
+                    currentDungeon = gameData.worlds.find(w => w.id === player.world.id)
+                                    .lateGameActions.find(a => a.id === player.inDungeon.dungeonActionId);
+                    if (currentDungeon) {
+                         showDungeonInterface(currentDungeon);
+                    }
+                }
+            } else {
+                startNewGame();
+            }
+        }
+        
+        function generateRandomName() {
+            const root = JAPANESE_NAME_ROOTS[Math.floor(Math.random() * JAPANESE_NAME_ROOTS.length)];
+            const ending = JAPANESE_NAME_ENDINGS[Math.floor(Math.random() * JAPANESE_NAME_ENDINGS.length)];
+            // Simple concatenation, could be made smarter (e.g., avoid double vowels if desired)
+            return root + ending;
+        }
+
+        function startNewGame() {
+            const startingAge = Math.floor(Math.random() * 5) + 8; // Age 8, 9, 10, 11, or 12
+            player = {
+                name: generateRandomName(), // Generate random name
+                age: startingAge,
+                currentDate: { year: startingAge, month: 1, day: 1 }, 
+                gold: 15, 
+                occupation: null,
+                class: null,
+                baseStats: {},
+                effectiveStats: {},
+                rank: "F",
+                rankXP: 0,
+                maxHP: 100,
+                currentHP: 100,
+                mana: 100,
+                maxMana: 100,
+                world: null,
+                companions: [], // { id: unique, name: "Elara", type: "Friend", level: 10, metAtAge: 8 }
+                children: [],
+                accolades: [],
+                titles: [],
+                equipment: { weapon: null, armor: null, misc: null }, 
+                treasures: [], 
+                blessings: [],
+                curses: [],
+                inDungeon: null, 
+                bondedSpirit: null, 
+                inventory: [], 
+            };
+            displayOccupationSelection();
+            logEvent(`Welcome to a new life, ${player.name}! You begin your journey at the age of ${player.age}.`);
+        }
+
+        function displayOccupationSelection() {
+            initialLoadPrompt.classList.add('hidden');
+            occupationSelection.classList.remove('hidden');
+            occupationSelection.innerHTML = `
+                <h2 class="text-xl md:text-2xl mb-3 text-center title-font">In your past life, you were a...</h2>
+                ${gameData.occupations.map(occ => `
+                    <button class="btn btn-primary m-1" onclick="selectOccupation('${occ.name}')">${occ.name}</button>
+                `).join('')}
+            `;
+        }
+
+        function selectOccupation(occupationName) {
+            player.occupation = gameData.occupations.find(occ => occ.name === occupationName);
+            occupationSelection.classList.add('hidden');
+            displayClassSelection();
+        }
+
+        function displayClassSelection() {
+            classSelection.classList.remove('hidden');
+            classSelectionTitle.textContent = `The Goddess Offers You a Path, ${player.occupation.name} from another world...`;
+            classSelectionIntro.textContent = "Choose a class that resonates with your new destiny:";
+            classChoicesContainer.innerHTML = player.occupation.classChoices.map(cls => `
+                <div class="class-choice-card" onclick="selectClass('${cls.name.replace(/'/g, "\\'")}')">
+                    <h4 class="font-bold">${cls.name}</h4>
+                    <p>${cls.description}</p>
+                    <p class="text-sm text-gray-400">Starting Stats: STR:${cls.baseStats.STR} DEX:${cls.baseStats.DEX} CON:${cls.baseStats.CON} INT:${cls.baseStats.INT} WIS:${cls.baseStats.WIS} CHA:${cls.baseStats.CHA} LUCK:${cls.baseStats.LUCK} MANA:${cls.baseStats.MANA}</p>
+                    <p class="text-sm text-gray-400">Starting Equipment: ${cls.equipment.map(item => item.name).join(', ')}</p>
+                    <p class="text-sm text-gray-400">Blessings: ${cls.blessings.join(', ')}</p>
+                    <p class="text-sm text-gray-400">Curses: ${cls.curses.join(', ')}</p>
+                </div>
+            `).join('');
+        }
+
+        function selectClass(className) {
+            player.class = player.occupation.classChoices.find(cls => cls.name === className);
+            player.baseStats = { ...player.class.baseStats };
+            player.mana = player.class.baseStats.MANA;
+            player.maxMana = player.class.baseStats.MANA;
+            player.blessings = [...player.class.blessings];
+            player.curses = [...player.class.curses];
+            player.equipment = { weapon: null, armor: null, misc: null };
+            player.class.equipment.forEach(item => {
+                if (item.type === 'weapon' && !player.equipment.weapon) player.equipment.weapon = item;
+                else if (item.type === 'armor' && !player.equipment.armor) player.equipment.armor = item;
+                else if (item.type === 'misc' && !player.equipment.misc) player.equipment.misc = item;
+                else player.inventory.push(item); 
+            });
+            player.world = gameData.worlds[Math.floor(Math.random() * gameData.worlds.length)];
+            classSelection.classList.add('hidden');
+            showNewLifeInterface();
+            logEvent(`You have been reborn as a <span class="font-bold text-blue-300">${player.class.name}</span> in <span class="font-bold text-yellow-300">${player.world.name}</span>!`);
+            logEvent(player.world.description);
+            updateUI();
+        }
+
+        function showNewLifeInterface() {
+            newLifeInterface.classList.remove('hidden');
+            occupationSelection.classList.add('hidden');
+            classSelection.classList.add('hidden');
+        }
+
+        function updateUI() {
+            updateCharacterSheet();
+            updateWorldActions();
+        }
+
+        function updateCharacterSheet() {
+            charDate.innerHTML = `<strong>Date:</strong> Year ${player.currentDate.year}, Month ${player.currentDate.month}, Day ${player.currentDate.day}`;
+            charName.innerHTML = `<strong>Name:</strong> <span class="stat-value">${player.name}</span>`;
+            charAge.innerHTML = `<strong>Age:</strong> <span class="stat-value">${player.age}</span>`;
+            charGold.innerHTML = `<strong>Gold:</strong> <span class="gold-value">${player.gold} G</span>`;
+            charWorld.innerHTML = `<strong>World:</strong> <span class="stat-value">${player.world.name}</span>`;
+            charRank.innerHTML = `<strong>Rank:</strong> <span class="stat-value">${player.rank}</span>`;
+            charHP.innerHTML = `<strong>HP:</strong> <span class="stat-value">${player.currentHP}/${player.maxHP}</span>
+                <div class="progress-bar-container"><div class="progress-bar hp-bar" style="width: ${(player.currentHP / player.maxHP) * 100}%"></div></div>`;
+            charRankXP.innerHTML = `<strong>Rank XP:</strong> <span class="stat-value">${player.rankXP}/${RANK_XP_THRESHOLDS[RANKS.indexOf(player.rank) + 1] || 'MAX'}</span>
+                <div class="progress-bar-container"><div class="progress-bar xp-bar" style="width: ${((player.rankXP / (RANK_XP_THRESHOLDS[RANKS.indexOf(player.rank) + 1] || player.rankXP)) * 100) || 100}%"></div></div>`;
+            charClass.innerHTML = `<strong>Class:</strong> <span class="stat-value">${player.class.name}</span>`;
+            
+            if (player.bondedSpirit) {
+                const spiritData = gameData.elementalSpirits.find(s => s.id === player.bondedSpirit.id);
+                charElementalSpirit.innerHTML = `<strong>Spirit:</strong> <span class="stat-value text-cyan-300">${spiritData.name} (Bond Lvl: ${player.bondedSpirit.bondLevel})</span>`;
+            } else {
+                charElementalSpirit.innerHTML = `<strong>Spirit:</strong> <span class="stat-value">None</span>`;
+            }
+
+            // Update Companions Display
+            charCompanionsList.innerHTML = ''; // Clear previous list
+            if (player.companions && player.companions.length > 0) {
+                player.companions.forEach(comp => {
+                    const compDiv = document.createElement('div');
+                    compDiv.classList.add('companion-entry');
+                    let typeDisplay = comp.type === "Romantic" ? "Romantic Partner" : "Friend";
+                    compDiv.innerHTML = `
+                        <div><span class="companion-name">${comp.name}</span> (<span class="companion-type">${typeDisplay}</span>)</div>
+                        <div>Bond Level: <span class="stat-value">${comp.level}/100</span></div>
+                        <div class="progress-bar-container"><div class="progress-bar relationship-bar" style="width: ${comp.level}%"></div></div>
+                    `;
+                    charCompanionsList.appendChild(compDiv);
+                });
+            } else {
+                charCompanionsList.innerHTML = '<div><span class="stat-value">None</span></div>';
+            }
+
+            charChildren.innerHTML = `<strong>Children:</strong> <span class="stat-value">${player.children.length > 0 ? player.children.join(', ') : 'None'}</span>`;
+
+            let baseStatsHtml = '';
+            for (const stat in player.baseStats) {
+                baseStatsHtml += `<div>${stat.toUpperCase()}: <span class="stat-value">${player.baseStats[stat]}</span></div>`;
+            }
+            charBaseStats.innerHTML = baseStatsHtml;
+
+            player.effectiveStats = calculateEffectiveStats(); 
+            let effectiveStatsHtml = '';
+            for (const stat in player.effectiveStats) {
+                if (stat.toLowerCase() === 'maxmana' && player.effectiveStats['MANA'] !== undefined) continue;
+                if (stat.toLowerCase() === 'mana') {
+                     effectiveStatsHtml += `<div>MANA: <span class="stat-value">${player.mana}/${player.maxMana}</span></div>`;
+                } else {
+                    effectiveStatsHtml += `<div>${stat.toUpperCase()}: <span class="stat-value">${player.effectiveStats[stat]}</span></div>`;
+                }
+            }
+            charEffectiveStats.innerHTML = effectiveStatsHtml;
+
+            charAccolades.innerHTML = player.accolades.length > 0 ? player.accolades.map(a => `<span class="accolade-name">${a}</span>`).join(', ') : 'None';
+            charTitles.innerHTML = player.titles.length > 0 ? player.titles.map(t => `<span class="title-name">${t}</span>`).join(', ') : 'None';
+
+            let equipmentHtml = '';
+            for (const slot in player.equipment) {
+                const item = player.equipment[slot];
+                equipmentHtml += `<div>${slot.charAt(0).toUpperCase() + slot.slice(1)}: <span class="item-name">${item ? item.name : 'None'}</span></div>`;
+            }
+            charEquipment.innerHTML = equipmentHtml;
+
+            charTreasures.innerHTML = player.treasures.length > 0 ? player.treasures.map(t => `<span class="item-name">${t}</span>`).join(', ') : 'None';
+            charBlessings.innerHTML = player.blessings.length > 0 ? player.blessings.map(b => `<span class="item-effect">${b}</span>`).join(', ') : 'None';
+            charCurses.innerHTML = player.curses.length > 0 ? player.curses.map(c => `<span class="item-effect">${c}</span>`).join(', ') : 'None';
+        }
+
+        function calculateEffectiveStats() {
+            const effective = { ...player.baseStats };
+            for (const slot in player.equipment) {
+                const item = player.equipment[slot];
+                if (item && item.stats) {
+                    for (const stat in item.stats) {
+                        effective[stat.toUpperCase()] = (effective[stat.toUpperCase()] || 0) + item.stats[stat];
+                    }
+                }
+            }
+            if (player.bondedSpirit) {
+                const spiritData = gameData.elementalSpirits.find(s => s.id === player.bondedSpirit.id);
+                if (spiritData) {
+                    for (const stat in spiritData.baseBoosts) {
+                        effective[stat.toUpperCase()] = (effective[stat.toUpperCase()] || 0) + spiritData.baseBoosts[stat];
+                    }
+                    if (player.bondedSpirit.bondLevel > 1) {
+                        for (const stat in spiritData.boostPerLevel) {
+                            effective[stat.toUpperCase()] = (effective[stat.toUpperCase()] || 0) + (spiritData.boostPerLevel[stat] * (player.bondedSpirit.bondLevel - 1));
+                        }
+                    }
+                }
+            }
+            
+            let newMaxMana = (effective.INT || 0) * 5 + (player.class.baseStats.MANA || 100);
+            for (const slot in player.equipment) {
+                const item = player.equipment[slot];
+                if (item && item.stats && item.stats.MANA) {
+                    newMaxMana += item.stats.MANA;
+                }
+            }
+             if (player.bondedSpirit) {
+                const spiritData = gameData.elementalSpirits.find(s => s.id === player.bondedSpirit.id);
+                if (spiritData) {
+                    if(spiritData.baseBoosts.MANA) newMaxMana += spiritData.baseBoosts.MANA;
+                    if (player.bondedSpirit.bondLevel > 1 && spiritData.boostPerLevel.MANA) {
+                         newMaxMana += (spiritData.boostPerLevel.MANA * (player.bondedSpirit.bondLevel - 1));
+                    }
+                }
+            }
+            player.maxMana = newMaxMana;
+            player.mana = Math.min(player.mana, player.maxMana);
+            return effective;
+        }
+
+        function updateWorldActions() {
+            actionsContainer.innerHTML = '';
+            // Generic Actions
+            actionsContainer.innerHTML += `
+                <button class="btn btn-action" onclick="performAction('study')">Study (INT/WIS, 3 Days)</button>
+                <button class="btn btn-action" onclick="performAction('train')">Train (STR/DEX/CON, 3 Days)</button>
+                <button class="btn btn-action" onclick="performAction('socialize')">Socialize (CHA, 2 Days)</button>
+                <button class="btn btn-action" onclick="performAction('meditate')">Meditate (MANA/WIS, 2 Days)</button>
+                <button class="btn btn-action" onclick="performAction('adventure')">Go on an Adventure (LUCK, 5 Days)</button>
+            `;
+
+            // Age-Specific Actions
+            gameData.ageSpecificActions.forEach(action => {
+                if (player.age >= action.ageMin && (action.ageMax === undefined || player.age <= action.ageMax)) {
+                    actionsContainer.innerHTML += `<button class="btn ${action.buttonClass}" onclick="performAction('${action.id}')">${action.name} (${action.timeCost} Days)</button>`;
+                }
+            });
+            
+            // Utility Actions (Tavern, Shop, Companionship)
+            gameData.utilityActions.forEach(action => {
+                 if (action.id === 'seek_companion' && player.companions.length >= 3) return; // Limit companions for now
+                 if (action.id === 'confess_feelings') {
+                     const eligibleFriends = player.companions.filter(c => c.type === 'Friend' && player.age >= MIN_ROMANCE_AGE && c.level >= FRIENDSHIP_TO_ROMANCE_THRESHOLD);
+                     if (eligibleFriends.length > 0) {
+                         // For simplicity, target the first eligible friend. Could be expanded to a selection.
+                         actionsContainer.innerHTML += `<button class="btn ${action.buttonClass}" onclick="performAction('${action.id}')">${action.name} to ${eligibleFriends[0].name} (${action.timeCost} Days)</button>`;
+                     }
+                     return; 
+                 }
+
+                 if (action.ageMin === undefined || player.age >= action.ageMin) {
+                    actionsContainer.innerHTML += `<button class="btn ${action.buttonClass}" onclick="performAction('${action.id}')">${action.name} (${action.timeCost} Days)</button>`;
+                }
+            });
+
+
+            // World Specific Actions
+            if (player.world && player.world.lateGameActions) {
+                player.world.lateGameActions.forEach(action => {
+                    if (RANKS.indexOf(player.rank) >= RANKS.indexOf(action.rankReq)) {
+                        let requirementsMet = true;
+                        if (action.requiresStats) {
+                            for (const stat in action.requiresStats) {
+                                if ((player.effectiveStats[stat.toUpperCase()] || 0) < action.requiresStats[stat]) {
+                                    requirementsMet = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (requirementsMet) {
+                             actionsContainer.innerHTML += `<button class="btn btn-world" onclick="performAction('${action.id}')">${action.name} (${action.timeCost} Days)</button>`;
+                        } else {
+                            let requirementText = [];
+                            for (const stat in action.requiresStats) {
+                                requirementText.push(`${stat.toUpperCase()}: ${action.requiresStats[stat]}`);
+                            }
+                            actionsContainer.innerHTML += `<button class="btn btn-world opacity-50 cursor-not-allowed" title="Requires: ${requirementText.join(', ')}">${action.name} (${action.timeCost} Days, Locked)</button>`;
+                        }
+                    }
+                });
+            }
+        }
+        
+        function advanceDate(days) {
+            player.currentDate.day += days;
+            while (player.currentDate.day > DAYS_IN_MONTH) {
+                player.currentDate.day -= DAYS_IN_MONTH;
+                player.currentDate.month++;
+                if (player.currentDate.month > MONTHS_IN_YEAR) {
+                    player.currentDate.month = 1;
+                    player.currentDate.year++;
+                    player.age++; 
+                    logEvent(`Happy Birthday! You are now ${player.age} years old.`);
+                }
+            }
+        }
+
+
+        function performAction(actionId) {
+            if (eventInProgress || gameEnded) return;
+
+            let actionDefinition = gameData.ageSpecificActions.find(a => a.id === actionId) ||
+                                   gameData.utilityActions.find(a => a.id === actionId) ||
+                                   (player.world.lateGameActions && player.world.lateGameActions.find(a => a.id === actionId));
+            
+            if (!actionDefinition) {
+                switch (actionId) { 
+                    case 'study': actionDefinition = { id: 'study', timeCost: 3, effects: {INT:0, WIS:0, XP:0}, result: ""}; break;
+                    case 'train': actionDefinition = { id: 'train', timeCost: 3, effects: {STR:0, DEX:0, CON:0, XP:0}, result: "" }; break;
+                    case 'socialize': actionDefinition = { id: 'socialize', timeCost: 2, effects: {CHA:0, XP:0}, result: "" }; break;
+                    case 'meditate': actionDefinition = { id: 'meditate', timeCost: 2, effects: {MANA:0, WIS:0, XP:0}, result: "" }; break;
+                    case 'adventure': actionDefinition = { id: 'adventure', timeCost: 5, effects: {XP:0}, result: "" }; break;
+                }
+            }
+            
+            if (!actionDefinition) {
+                logEvent(`Error: Action ID "${actionId}" not found.`);
+                return;
+            }
+
+            eventInProgress = true;
+            let resultText = actionDefinition.result || "";
+            let hpChange = 0;
+            let xpGain = 0;
+            let manaChange = 0;
+            let statChanges = {};
+            let relationshipLevelChange = 0;
+            let titleGranted = null;
+            let accoladeGranted = null;
+            let itemGained = null; 
+            let isBattle = actionDefinition.isBattle || false;
+            let isGameEnd = actionDefinition.isGameEnd || false;
+            let isSignificantEvent = actionDefinition.significantEvent || false;
+            let goldChange = 0;
+
+            if (actionDefinition.goldCost && player.gold < actionDefinition.goldCost) {
+                logEvent(`Not enough gold for ${actionDefinition.name}. You need ${actionDefinition.goldCost}G.`);
+                eventInProgress = false;
+                updateUI(); 
+                return;
+            }
+            if(actionDefinition.goldCost) goldChange -= actionDefinition.goldCost;
+
+            const effectiveStats = player.effectiveStats; 
+
+            if (actionDefinition.effects) {
+                if(actionDefinition.effects.XP) xpGain += actionDefinition.effects.XP;
+                if(actionDefinition.effects.GOLD) goldChange += actionDefinition.effects.GOLD;
+                if(actionDefinition.effects.STR) statChanges.STR = (statChanges.STR || 0) + actionDefinition.effects.STR;
+                if(actionDefinition.effects.DEX) statChanges.DEX = (statChanges.DEX || 0) + actionDefinition.effects.DEX;
+                if(actionDefinition.effects.CON) statChanges.CON = (statChanges.CON || 0) + actionDefinition.effects.CON;
+                if(actionDefinition.effects.INT) statChanges.INT = (statChanges.INT || 0) + actionDefinition.effects.INT;
+                if(actionDefinition.effects.WIS) statChanges.WIS = (statChanges.WIS || 0) + actionDefinition.effects.WIS;
+                if(actionDefinition.effects.CHA) statChanges.CHA = (statChanges.CHA || 0) + actionDefinition.effects.CHA;
+                if(actionDefinition.effects.LUCK) statChanges.LUCK = (statChanges.LUCK || 0) + actionDefinition.effects.LUCK;
+                if(actionDefinition.effects.MANA) manaChange += actionDefinition.effects.MANA;
+                if(actionDefinition.effects.HEAL_PERCENT) hpChange += Math.floor(player.maxHP * actionDefinition.effects.HEAL_PERCENT);
+            }
+            
+            if (actionDefinition.grantsItemChance && Math.random() < actionDefinition.grantsItemChance && actionDefinition.itemPool) {
+                itemGained = actionDefinition.itemPool[Math.floor(Math.random() * actionDefinition.itemPool.length)];
+            }
+            if (actionDefinition.grantsItem) itemGained = actionDefinition.grantsItem;
+
+
+            switch (actionId) { 
+                case 'study':
+                    statChanges.INT = (statChanges.INT || 0) + Math.floor(Math.random() * 2) + 1;
+                    statChanges.WIS = (statChanges.WIS || 0) + Math.floor(Math.random() * 2) + 1;
+                    xpGain += 5;
+                    resultText = `You spent time studying, improving your intellect and wisdom. (+${statChanges.INT} INT, +${statChanges.WIS} WIS)`;
+                    break;
+                case 'train':
+                    statChanges.STR = (statChanges.STR || 0) + Math.floor(Math.random() * 2) + 1;
+                    statChanges.DEX = (statChanges.DEX || 0) + Math.floor(Math.random() * 2) + 1;
+                    statChanges.CON = (statChanges.CON || 0) + Math.floor(Math.random() * 2) + 1;
+                    hpChange -= Math.floor(Math.random() * 5); 
+                    xpGain += 5;
+                    resultText = `You pushed your body to its limits. (+${statChanges.STR} STR, +${statChanges.DEX} DEX, +${statChanges.CON} CON)`;
+                    break;
+                case 'socialize':
+                    statChanges.CHA = parseFloat(((statChanges.CHA || 0) + (Math.floor(Math.random() * 10) + 5) / 10).toFixed(1)); // 0.5 to 1.5 CHA
+                    xpGain += 3;
+                    resultText = `You spent time socializing, enhancing your charm. (+${statChanges.CHA} CHA)`;
+                    
+                    // Prioritize romantic partner, then highest bond friend, then any friend
+                    let targetCompanion = player.companions.find(c => c.type === "Romantic");
+                    if (!targetCompanion && player.companions.length > 0) {
+                        // Simple: pick the first one. Could be made smarter (e.g. highest bond, or random)
+                        targetCompanion = player.companions.sort((a,b) => b.level - a.level)[0] || player.companions[0];
+                    }
+
+                    if (targetCompanion) {
+                        relationshipLevelChange = Math.floor(Math.random() * 5) + 3; // 3-7
+                        targetCompanion.level = Math.min(100, targetCompanion.level + relationshipLevelChange);
+                        resultText += ` Your bond with <span class="${targetCompanion.type === 'Romantic' ? 'text-pink-300' : 'text-green-300'}">${targetCompanion.name}</span> (${targetCompanion.type}) deepens. (+${relationshipLevelChange} Bond)`;
+                    } else {
+                        resultText += " You tried to be social, but didn't connect deeply with anyone specific this time.";
+                    }
+                    break;
+                case 'meditate':
+                    manaChange += Math.floor(Math.random() * 10) + 5 + Math.floor((effectiveStats.WIS || 0) / 3); 
+                    statChanges.WIS = (statChanges.WIS || 0) + Math.floor(Math.random() * 1) + 1;
+                    xpGain += 4;
+                    resultText = `You cleared your mind, restoring mana and gaining insight. (+${manaChange} Mana, +${statChanges.WIS} WIS)`;
+                    break;
+                case 'adventure':
+                    const adventureRoll = Math.random() * 100 + (effectiveStats.LUCK || 0); 
+                    xpGain += 10;
+                    if (adventureRoll > 120) {
+                        resultText = "You stumbled upon a hidden treasure! Your luck truly shines.";
+                        itemGained = { name: "Ancient Relic", type: "misc", stats: { LUCK: 1, INT: 1 }, significant: true };
+                        accoladeGranted = "Fortune's Favorite";
+                        isSignificantEvent = true;
+                    } else if (adventureRoll > 80) {
+                        resultText = "A rewarding adventure! You found some valuable trinkets and gained experience.";
+                        xpGain += 10;
+                         if (Math.random() < 0.2) { 
+                            itemGained = { name: "Worn Dagger", type: "weapon", stats: { STR: 1 } }; 
+                        }
+                    } else if (adventureRoll > 40) {
+                        resultText = "A decent adventure, nothing too exciting.";
+                    } else {
+                        resultText = "Your adventure was fraught with minor mishaps. You narrowly escaped a trap.";
+                        hpChange -= Math.floor(Math.random() * 10);
+                        xpGain = Math.max(0, xpGain - 8); 
+                    }
+                    break;
+                case 'seek_companion':
+                    if (player.companions.length < 5) { // Limit total companions for simplicity
+                        const seekRoll = Math.random() * 100 + (effectiveStats.CHA || 0) + (effectiveStats.LUCK || 0);
+                        const newCompanionName = COMPANION_NAMES.filter(n => !player.companions.find(c => c.name === n))[Math.floor(Math.random() * COMPANION_NAMES.filter(n => !player.companions.find(c => c.name === n)).length)] || "Someone New";
+
+                        if (player.age < MIN_ROMANCE_AGE) { 
+                            if (seekRoll > 50) { 
+                                player.companions.push({ id: Date.now() + Math.random(), name: newCompanionName, type: "Friend", level: Math.floor(Math.random() * 11) + 10, metAtAge: player.age }); // 10-20
+                                resultText = `You met <span class="font-bold text-green-300">${newCompanionName}</span> and quickly became friends!`;
+                            } else {
+                                resultText = "You spent some time trying to meet new people, but no strong connections were made.";
+                            }
+                        } else { 
+                            if (seekRoll > 100) { 
+                                player.companions.push({ id: Date.now() + Math.random(), name: newCompanionName, type: "Romantic", level: Math.floor(Math.random() * 16) + 15, metAtAge: player.age }); // 15-30
+                                resultText = `Sparks flew! You met <span class="font-bold text-pink-300">${newCompanionName}</span> and a romance has begun!`;
+                                accoladeGranted = "Charmer";
+                            } else if (seekRoll > 60) { 
+                                player.companions.push({ id: Date.now() + Math.random(), name: newCompanionName, type: "Friend", level: Math.floor(Math.random() * 11) + 10, metAtAge: player.age }); // 10-20
+                                resultText = `You made a new friend, <span class="font-bold text-green-300">${newCompanionName}</span>.`;
+                            } else {
+                                resultText = "Your search for a companion yielded no results this time.";
+                            }
+                        }
+                    } else {
+                        resultText = "You feel your social circle is quite full for now.";
+                    }
+                    isSignificantEvent = true; // Finding someone or failing to is significant
+                    break;
+                case 'confess_feelings':
+                    const eligibleFriends = player.companions.filter(c => c.type === 'Friend' && player.age >= MIN_ROMANCE_AGE && c.level >= FRIENDSHIP_TO_ROMANCE_THRESHOLD);
+                    if (eligibleFriends.length > 0) {
+                        const targetFriend = eligibleFriends.sort((a,b) => b.level - a.level)[0]; // Target highest bond eligible friend
+                        const confessRoll = Math.random() * 100 + (effectiveStats.CHA || 0) + targetFriend.level / 2 + (effectiveStats.LUCK || 0) / 2;
+                        if (confessRoll > 100) { 
+                            targetFriend.type = "Romantic";
+                            targetFriend.level = Math.max(targetFriend.level, Math.floor(Math.random() * 21) + 40); // Boost to 40-60 or keep if higher
+                            resultText = `Your heart pounded as you confessed to <span class="font-bold text-pink-300">${targetFriend.name}</span>... They feel the same way! Your friendship has blossomed into romance!`;
+                            accoladeGranted = "Heart's Desire";
+                        } else if (confessRoll > 60) { 
+                            resultText = `<span class="font-bold text-green-300">${targetFriend.name}</span> values your friendship deeply but doesn't see you that way. Things are a little awkward, but your friendship remains.`;
+                            targetFriend.level = Math.max(20, targetFriend.level - Math.floor(Math.random()*10 + 5)); 
+                        } else { 
+                            resultText = `It was a difficult conversation. <span class="font-bold text-green-300">${targetFriend.name}</span> doesn't share your romantic feelings. Your friendship feels strained.`;
+                            targetFriend.level = Math.max(0, targetFriend.level - Math.floor(Math.random()*20 + 15)); 
+                            if (targetFriend.level < 10) {
+                                resultText += ` It seems your friendship might not recover from this.`;
+                                player.companions = player.companions.filter(c => c.id !== targetFriend.id); // Remove friend
+                            }
+                        }
+                    } else {
+                        resultText = "There's no one suitable to confess to right now."; 
+                    }
+                    isSignificantEvent = true;
+                    break;
+                case 'first_quest_pest':
+                    const combatStat = player.effectiveStats[actionDefinition.combatCheck.stat.toUpperCase()] || 0;
+                    if (combatStat + Math.floor(Math.random()*6)+1 > actionDefinition.combatCheck.difficulty) { 
+                        resultText = actionDefinition.resultSuccess;
+                        goldChange += actionDefinition.effects.GOLD;
+                        xpGain += actionDefinition.effects.XP;
+                    } else {
+                        resultText = actionDefinition.resultFail;
+                        hpChange -= Math.floor(Math.random() * (actionDefinition.hpCostFail[1] - actionDefinition.hpCostFail[0] + 1)) + actionDefinition.hpCostFail[0];
+                    }
+                    isSignificantEvent = true;
+                    break;
+                case 'visit_shop':
+                    openShopModal();
+                    eventInProgress = false;
+                    return; 
+                 default:
+                    if(actionDefinition.isWorldSpecific) {
+                        if (actionDefinition.isBattle) {
+                            isBattle = true;
+                            const battleRoll = Math.random() * 100 + (effectiveStats.STR || 0) + (effectiveStats.DEX || 0) + (effectiveStats.CON || 0);
+                            const difficultyAdjustedRoll = battleRoll / actionDefinition.difficultyBonus;
+                            if (difficultyAdjustedRoll > 80) { 
+                                hpChange -= Math.floor(Math.random() * (actionDefinition.hpCostRange[1] / 2 - actionDefinition.hpCostRange[0] / 2) + actionDefinition.hpCostRange[0] / 2);
+                                resultText = actionDefinition.result.replace("{hpLost}", Math.abs(hpChange));
+                                if (actionDefinition.grantsTitle && Math.random() < actionDefinition.grantsTitle.chance) {
+                                    titleGranted = actionDefinition.grantsTitle.name;
+                                }
+                            } else { 
+                                hpChange -= Math.floor(Math.random() * (actionDefinition.hpCostRange[1] - actionDefinition.hpCostRange[0]) + actionDefinition.hpCostRange[0]);
+                                resultText = `You struggled during the ${actionDefinition.name}. It was a costly endeavor, losing ${Math.abs(hpChange)} HP. You might need to try again.`;
+                                if (isGameEnd) { 
+                                    isGameEnd = false;
+                                    resultText += " The objective was not fully achieved, but you live to fight another day.";
+                                }
+                                isSignificantEvent = true; 
+                            }
+                        } else { 
+                             hpChange -= Math.floor(Math.random() * (actionDefinition.hpCostRange[1] - actionDefinition.hpCostRange[0]) + actionDefinition.hpCostRange[0]);
+                             resultText = actionDefinition.result.replace("{hpLost}", Math.abs(hpChange));
+                        }
+                    }
+                    break;
+            }
+            
+            advanceDate(actionDefinition.timeCost);
+
+            player.currentHP = Math.max(0, Math.min(player.maxHP, player.currentHP + hpChange));
+            player.mana = Math.max(0, Math.min(player.maxMana, player.mana + manaChange));
+            player.gold += goldChange;
+
+            for (const stat in statChanges) {
+                player.baseStats[stat.toUpperCase()] = parseFloat(((player.baseStats[stat.toUpperCase()] || 0) + statChanges[stat]).toFixed(1));
+            }
+            
+            const romanticPartner = player.companions.find(c => c.type === "Romantic");
+            if (romanticPartner && romanticPartner.level >= CHILD_BEARING_BOND_LEVEL && player.children.length < 3 && Math.random() < 0.05) { // Lowered chance for balance
+                let newChildName = CHILD_NAMES[Math.floor(Math.random() * CHILD_NAMES.length)];
+                player.children.push(newChildName);
+                resultText += ` You and ${romanticPartner.name} had a child named <span class="font-bold text-green-300">${newChildName}</span>!`;
+                logEvent(`A new child is born: ${newChildName}!`);
+                isSignificantEvent = true; 
+            }
+            
+            const oldRank = player.rank;
+            player.rankXP += xpGain;
+            checkRankUp();
+            if (player.rank !== oldRank) isSignificantEvent = true; 
+
+            if (accoladeGranted && !player.accolades.includes(accoladeGranted)) {
+                player.accolades.push(accoladeGranted);
+                resultText += ` You earned the Accolade: <span class="accolade-name">${accoladeGranted}</span>!`;
+            }
+            if (titleGranted && !player.titles.includes(titleGranted)) {
+                player.titles.push(titleGranted);
+                resultText += ` You earned the Title: <span class="title-name">${titleGranted}</span>!`;
+                isSignificantEvent = true; 
+            }
+
+            if (itemGained) {
+                player.inventory.push(itemGained);
+                resultText += ` You found a <span class="item-name">${itemGained.name}</span>! It has been added to your bag.`;
+                logEvent(`Obtained item: ${itemGained.name}`);
+                if (itemGained.significant) isSignificantEvent = true; 
+            }
+            
+            if (isGameEnd) isSignificantEvent = true; 
+
+            showEvent(actionId, resultText, isGameEnd, isSignificantEvent);
+        }
+
+        function checkRankUp() {
+            const currentRankIndex = RANKS.indexOf(player.rank);
+            if (currentRankIndex < RANKS.length - 1) {
+                const nextRankXP = RANK_XP_THRESHOLDS[currentRankIndex + 1];
+                if (player.rankXP >= nextRankXP) {
+                    player.rank = RANKS[currentRankIndex + 1];
+                    player.rankXP -= nextRankXP; 
+                    player.maxHP += 10 + (player.baseStats.CON || 0); 
+                    player.currentHP = player.maxHP; 
+                    logEvent(`🎉 You have been promoted to <span class="font-bold text-purple-300">${player.rank} Rank</span>! Your HP increased!`);
+                }
+            }
+        }
+
+        function advanceYear() { 
+            if (eventInProgress || gameEnded) return;
+
+            player.currentDate.day = 1;
+            player.currentDate.month = 1;
+            player.currentDate.year++;
+            player.age++;
+
+            if (!player.inDungeon) {
+                player.currentHP = player.maxHP;
+                player.mana = player.maxMana;
+                logEvent("A new year begins! Your HP and Mana have been restored.");
+            }
+
+            if (player.bondedSpirit) {
+                const spiritData = gameData.elementalSpirits.find(s => s.id === player.bondedSpirit.id);
+                if (spiritData && player.bondedSpirit.bondLevel < spiritData.maxBondLevel) {
+                    if (Math.random() < 0.25 + ((player.effectiveStats.CHA || 0) * 0.01)) { 
+                        player.bondedSpirit.bondLevel++;
+                        logEvent(`Your bond with the <span class="font-bold text-cyan-300">${spiritData.name}</span> deepens! (Bond Level ${player.bondedSpirit.bondLevel})`);
+                        if (spiritData.bondMessages[player.bondedSpirit.bondLevel -1]) { 
+                             logEvent(spiritData.bondMessages[player.bondedSpirit.bondLevel -1]);
+                        }
+                    }
+                }
+            }
+
+            checkElementalSpiritEncounter(); 
+
+            updateUI(); 
+            if (!eventInProgress) { 
+                logEvent(`Year ${player.currentDate.year} begins. You are now ${player.age}.`);
+            }
+            saveGame(); 
+        }
+
+        function showEvent(actionId, message, isGameEnd = false, isSignificant = false) {
+            eventTitleElem.textContent = "Event Occurred"; 
+            eventTextElem.innerHTML = message;
+            
+            if (isSignificant || isGameEnd) { 
+                eventDisplay.classList.remove('hidden');
+                newLifeInterface.classList.add('hidden');
+            } else { 
+                logEvent(message.replace(/<[^>]*>?/gm, '')); 
+                eventInProgress = false;
+                updateUI();
+                return;
+            }
+
+            continueButtonElem.onclick = () => {
+                eventDisplay.classList.add('hidden');
+                newLifeInterface.classList.remove('hidden');
+                eventInProgress = false; 
+                if (isGameEnd) {
+                    endGame();
+                }
+                updateUI(); 
+            };
+        }
+
+        function logEvent(message) {
+            const logEntry = document.createElement('div');
+            logEntry.classList.add('log-entry');
+            logEntry.innerHTML = `[Y${player.currentDate.year} M${player.currentDate.month} D${player.currentDate.day} Age:${player.age}] ${message}`;
+            eventLog.prepend(logEntry); 
+            if (eventLog.children.length > 100) { 
+                eventLog.removeChild(eventLog.lastChild);
+            }
+        }
+
+        function endGame() {
+            gameEnded = true;
+            logEvent("The game has ended. Your destiny is fulfilled!");
+            showMessageModal("Game Over", "Your journey has concluded. Refresh to start anew!");
+            advanceYearButtonUI.disabled = true;
+            saveGameButtonUI.disabled = true;
+            itemBagButtonUI.disabled = true;
+            actionsContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        }
+
+        function showMessageModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessageText.innerHTML = message; 
+            messageModal.classList.remove('hidden');
+            modalCloseButton.onclick = () => {
+                messageModal.classList.add('hidden');
+            };
+        }
+        
+        function enterDungeon(dungeonAction) {
+            if (eventInProgress || gameEnded) return;
+            player.inDungeon = {
+                dungeonActionId: dungeonAction.id,
+                turnsLeft: dungeonAction.timeCost, 
+                initialHP: player.currentHP,
+            };
+            currentDungeon = dungeonAction;
+            showDungeonInterface(dungeonAction);
+            logEvent(`You entered <span class="font-bold text-orange-300">${dungeonAction.name}</span>. You have ${player.inDungeon.turnsLeft} turns.`);
+        }
+
+        function showDungeonInterface(dungeonAction) {
+            worldActionsContainer.classList.add('hidden');
+            dungeonInterface.classList.remove('hidden');
+            dungeonNameElem.textContent = `Exploring: ${dungeonAction.name}`;
+            updateDungeonStatus();
+        }
+
+        function updateDungeonStatus() {
+            if (!player.inDungeon) return;
+            dungeonStatusElem.innerHTML = `<strong>Turns Left:</strong> <span class="stat-value">${player.inDungeon.turnsLeft}</span>
+                <div class="progress-bar-container"><div class="progress-bar dungeon-time-bar" style="width: ${(player.inDungeon.turnsLeft / currentDungeon.timeCost) * 100}%"></div></div>
+                <div class="mt-1"><strong>Current HP:</strong> <span class="stat-value">${player.currentHP}/${player.maxHP}</span></div>
+            `;
+        }
+
+        function dungeonExplore() {
+            if (eventInProgress || gameEnded || !player.inDungeon) return;
+            player.inDungeon.turnsLeft--; 
+            let resultText = "";
+            let hpLost = 0;
+            let xpGain = 0;
+
+            const effectiveStats = player.effectiveStats;
+            const battleRoll = Math.random() * 100 + (effectiveStats.STR || 0) + (effectiveStats.DEX || 0) + (effectiveStats.CON || 0) + (effectiveStats.LUCK || 0);
+            const difficultyAdjustedRoll = battleRoll / currentDungeon.difficultyBonus;
+
+            if (difficultyAdjustedRoll > 70) { 
+                hpLost = Math.floor(Math.random() * (currentDungeon.hpCostRange[1] / 3 - currentDungeon.hpCostRange[0] / 3) + currentDungeon.hpCostRange[0] / 3);
+                xpGain = Math.floor(Math.random() * (currentDungeon.rankXP / 2));
+                resultText = `You successfully navigated a dangerous section. Lost ${hpLost} HP.`;
+            } else if (difficultyAdjustedRoll > 30) { 
+                hpLost = Math.floor(Math.random() * (currentDungeon.hpCostRange[1] / 2 - currentDungeon.hpCostRange[0] / 2) + currentDungeon.hpCostRange[0] / 2);
+                xpGain = Math.floor(Math.random() * (currentDungeon.rankXP / 3));
+                resultText = `You encountered some resistance. Lost ${hpLost} HP.`;
+            } else { 
+                hpLost = Math.floor(Math.random() * (currentDungeon.hpCostRange[1] - currentDungeon.hpCostRange[0]) + currentDungeon.hpCostRange[0]);
+                xpGain = Math.floor(Math.random() * (currentDungeon.rankXP / 4));
+                resultText = `A formidable foe appeared! You took heavy damage: ${hpLost} HP.`;
+            }
+
+            player.currentHP = Math.max(0, player.currentHP - hpLost);
+            player.rankXP += xpGain;
+            const oldRank = player.rank;
+            checkRankUp();
+            logEvent(`Dungeon Explore: ${resultText} (+${xpGain} XP)`);
+            if(player.rank !== oldRank) showMessageModal("Rank Up!", `Congratulations! You've been promoted to ${player.rank} Rank!`);
+
+
+            if (player.currentHP <= 0) {
+                logEvent(`You succumbed to your wounds in ${currentDungeon.name}. Game Over.`);
+                showMessageModal("Defeat", "You were defeated in the dungeon. Your journey ends here.");
+                endGame();
+                return;
+            }
+            if (player.inDungeon.turnsLeft <= 0) { finishDungeon(); }
+            updateUI();
+            updateDungeonStatus();
+        }
+
+        function dungeonRest() {
+            if (eventInProgress || gameEnded || !player.inDungeon) return;
+            player.inDungeon.turnsLeft--;
+            const hpHealed = Math.floor(Math.random() * 15) + 5 + Math.floor((player.effectiveStats.CON || 0) / 2); 
+            player.currentHP = Math.min(player.maxHP, player.currentHP + hpHealed);
+            logEvent(`You rested, recovering ${hpHealed} HP.`);
+            if (player.inDungeon.turnsLeft <= 0) { finishDungeon(); }
+            updateUI();
+            updateDungeonStatus();
+        }
+
+        function dungeonFlee() {
+            if (eventInProgress || gameEnded || !player.inDungeon) return;
+            const effectiveStats = player.effectiveStats;
+            const fleeChance = ((effectiveStats.DEX || 0) + (effectiveStats.LUCK || 0)) / 2; 
+
+            if (Math.random() * 100 < fleeChance) {
+                logEvent(`You successfully fled from ${currentDungeon.name}.`);
+            } else {
+                const hpLost = Math.floor(Math.random() * 20) + 10;
+                player.currentHP = Math.max(0, player.currentHP - hpLost);
+                logEvent(`You failed to flee quickly and took ${hpLost} HP damage!`);
+                if (player.currentHP <= 0) {
+                    logEvent(`You succumbed to your wounds while fleeing from ${currentDungeon.name}. Game Over.`);
+                    showMessageModal("Defeat", "You were defeated while trying to flee. Your journey ends here.");
+                    endGame();
+                    return;
+                }
+            }
+            exitDungeon();
+            updateUI();
+        }
+
+        function finishDungeon() {
+            logEvent(`You completed your exploration of ${currentDungeon.name}.`);
+            const totalHPLost = player.inDungeon.initialHP - player.currentHP;
+            let resultMessage = currentDungeon.result.replace("{hpLost}", totalHPLost);
+            let isSignificantCompletion = currentDungeon.significantEvent || false;
+            
+            if (currentDungeon.grantsTitle && Math.random() < currentDungeon.grantsTitle.chance) {
+                if (!player.titles.includes(currentDungeon.grantsTitle.name)) {
+                    player.titles.push(currentDungeon.grantsTitle.name);
+                    resultMessage += ` You earned the Title: <span class="title-name">${currentDungeon.grantsTitle.name}</span>!`;
+                    isSignificantCompletion = true;
+                }
+            }
+            if (currentDungeon.effects) {
+                let effectMessages = [];
+                for (const stat in currentDungeon.effects) {
+                    player.baseStats[stat.toUpperCase()] = (player.baseStats[stat.toUpperCase()] || 0) + currentDungeon.effects[stat];
+                    effectMessages.push(`+${currentDungeon.effects[stat]} ${stat.toUpperCase()}`);
+                }
+                resultMessage += ` Your stats improved: ${effectMessages.join(', ')}.`;
+            }
+            if (currentDungeon.grantsItem) {
+                player.inventory.push(currentDungeon.grantsItem);
+                resultMessage += ` You found a <span class="item-name">${currentDungeon.grantsItem.name}</span>!`;
+                logEvent(`Obtained item from dungeon: ${currentDungeon.grantsItem.name}`);
+                if(currentDungeon.grantsItem.significant) isSignificantCompletion = true;
+            }
+
+            if (currentDungeon.isGameEnd) {
+                showEvent(currentDungeon.id, resultMessage, true, true); 
+            } else {
+                showEvent(currentDungeon.id, resultMessage, false, isSignificantCompletion);
+            }
+            exitDungeon();
+        }
+
+        function exitDungeon() {
+            player.inDungeon = null;
+            currentDungeon = null;
+            dungeonInterface.classList.add('hidden');
+            worldActionsContainer.classList.remove('hidden');
+        }
+
+        function saveGame() {
+            localStorage.setItem(SAVE_KEY, JSON.stringify(player));
+        }
+
+        function loadGame() {
+            const savedData = localStorage.getItem(SAVE_KEY);
+            if (savedData) {
+                return JSON.parse(savedData);
+            }
+            return null;
+        }
+
+        function checkElementalSpiritEncounter() {
+            if (player.bondedSpirit || eventInProgress) return; 
+            const baseChance = 0.03; 
+            const luckBonus = (player.effectiveStats.LUCK || 0) * 0.005; 
+            const encounterChance = baseChance + luckBonus;
+
+            if (Math.random() < encounterChance) {
+                const availableSpirits = gameData.elementalSpirits.filter(s => s.id !== (player.bondedSpirit ? player.bondedSpirit.id : null));
+                if (availableSpirits.length > 0) {
+                    currentSpiritEncounter = availableSpirits[Math.floor(Math.random() * availableSpirits.length)];
+                    eventInProgress = true; 
+                    spiritModalTitleElem.textContent = `A Wild ${currentSpiritEncounter.type} Appears!`;
+                    spiritModalMessageElem.innerHTML = `You sense a powerful presence... A <span class="font-bold text-purple-300">${currentSpiritEncounter.name}</span>, ${currentSpiritEncounter.description.toLowerCase()}, has appeared before you! Do you wish to attempt to bond with it?`;
+                    elementalSpiritModal.classList.remove('hidden');
+                }
+            }
+        }
+
+        function attemptBondSpirit() {
+            if (!currentSpiritEncounter) return;
+            elementalSpiritModal.classList.add('hidden');
+            const bondSuccessChance = 0.45 + ((player.effectiveStats.CHA || 0) * 0.01) + ((player.effectiveStats.LUCK || 0) * 0.005); 
+            
+            if (Math.random() < bondSuccessChance) {
+                player.bondedSpirit = { id: currentSpiritEncounter.id, bondLevel: 1 };
+                logEvent(`You successfully bonded with the <span class="font-bold text-cyan-300">${currentSpiritEncounter.name}</span>! It grants you initial boosts.`);
+                showMessageModal("Bond Successful!", `The ${currentSpiritEncounter.name} has chosen to bond with you! You feel a new power within you.`);
+            } else {
+                let penaltyText = "";
+                if (Math.random() < 0.3) { 
+                    const hpPenalty = Math.floor(Math.random() * 10) + 5;
+                    player.currentHP = Math.max(0, player.currentHP - hpPenalty);
+                    penaltyText = `It lashes out as it departs, costing you ${hpPenalty} HP!`;
+                }
+                logEvent(`The <span class="font-bold text-cyan-300">${currentSpiritEncounter.name}</span> resists your attempt and flees. ${penaltyText}`);
+                showMessageModal("Bond Failed", `The ${currentSpiritEncounter.name} was not receptive to your attempt to bond and flew away. ${penaltyText}`);
+            }
+            currentSpiritEncounter = null;
+            eventInProgress = false; 
+            updateUI();
+        }
+
+        function declineBondSpirit() {
+            elementalSpiritModal.classList.add('hidden');
+            logEvent(`You decided not to bond with the <span class="font-bold text-cyan-300">${currentSpiritEncounter.name}</span>. It departs peacefully.`);
+            showMessageModal("Spirit Departed", `You decided not to bond with the ${currentSpiritEncounter.name}. It leaves without incident.`);
+            currentSpiritEncounter = null;
+            eventInProgress = false; 
+            updateUI();
+        }
+
+        function openItemBag() {
+            if (eventInProgress || gameEnded) return;
+            itemBagContent.innerHTML = ''; 
+            if (player.inventory.length === 0) {
+                itemBagContent.innerHTML = '<p class="text-center text-gray-400">Your bag is empty.</p>';
+            } else {
+                player.inventory.forEach((item, index) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('item-slot');
+                    let tooltipText = `Stats: `;
+                    if (item.stats && Object.keys(item.stats).length > 0) {
+                        tooltipText += Object.entries(item.stats).map(([stat, value]) => `${stat.toUpperCase()}: ${value}`).join(', ');
+                    } else if (item.effect && item.effect.heal) {
+                        tooltipText = `Effect: Heals ${item.effect.heal} HP`;
+                    } else if (item.effect && item.effect.mana) {
+                        tooltipText = `Effect: Restores ${item.effect.mana} Mana`;
+                    } else {
+                        tooltipText += `None`;
+                    }
+                    itemDiv.innerHTML = `<span class="item-name">${item.name} (${item.type})</span>
+                                        ${item.type !== 'consumable' ? `<button class="btn btn-equip" data-index="${index}">Equip</button>` : `<button class="btn btn-info" data-index="${index}">Use</button>`}
+                                        <div class="item-tooltip hidden">${tooltipText}</div>`; 
+                    itemBagContent.appendChild(itemDiv);
+                    
+                    const actionButton = itemDiv.querySelector('.btn-equip, .btn-info');
+                    if (actionButton) {
+                        actionButton.addEventListener('click', (e) => {
+                            const itemIndex = parseInt(e.target.dataset.index);
+                            if (item.type !== 'consumable') {
+                                equipItem(itemIndex);
+                            } else {
+                                useConsumableItem(itemIndex);
+                            }
+                        });
+                    }
+                });
+            }
+            itemBagModal.classList.remove('hidden');
+        }
+        
+        function useConsumableItem(itemIndexInInventory) {
+            const itemToUse = player.inventory[itemIndexInInventory];
+            if (!itemToUse || itemToUse.type !== 'consumable' || !itemToUse.effect) return;
+
+            let effectApplied = false;
+            let effectMessage = "";
+
+            if (itemToUse.effect.heal) {
+                const healedAmount = Math.min(player.maxHP - player.currentHP, itemToUse.effect.heal);
+                if (healedAmount > 0) {
+                    player.currentHP += healedAmount;
+                    effectMessage = `You used ${itemToUse.name} and recovered ${healedAmount} HP.`;
+                    effectApplied = true;
+                } else {
+                    effectMessage = `${itemToUse.name} had no effect, your HP is already full.`;
+                }
+            } else if (itemToUse.effect.mana) {
+                 const restoredAmount = Math.min(player.maxMana - player.mana, itemToUse.effect.mana);
+                if (restoredAmount > 0) {
+                    player.mana += restoredAmount;
+                    effectMessage = `You used ${itemToUse.name} and restored ${restoredAmount} Mana.`;
+                    effectApplied = true;
+                } else {
+                    effectMessage = `${itemToUse.name} had no effect, your Mana is already full.`;
+                }
+            }
+
+            if (effectApplied) {
+                player.inventory.splice(itemIndexInInventory, 1); 
+            }
+            
+            logEvent(effectMessage);
+            if (effectApplied) showMessageModal("Item Used", effectMessage); 
+            updateUI();
+            openItemBag(); 
+        }
+
+
+        function closeItemBag() {
+            itemBagModal.classList.add('hidden');
+        }
+
+        function equipItem(itemIndexInInventory) {
+            const itemToEquip = player.inventory[itemIndexInInventory];
+            if (!itemToEquip || !itemToEquip.type || itemToEquip.type === 'consumable') return; 
+
+            const itemTypeSlot = itemToEquip.type.toLowerCase(); 
+            let successMessage = "";
+
+            if (player.equipment.hasOwnProperty(itemTypeSlot)) {
+                if (player.equipment[itemTypeSlot]) {
+                    const currentlyEquipped = player.equipment[itemTypeSlot];
+                    player.inventory.push(currentlyEquipped); 
+                    successMessage = `You unequipped <span class="item-name">${currentlyEquipped.name}</span> and equipped <span class="item-name">${itemToEquip.name}</span>.`;
+                } else {
+                    successMessage = `You equipped the <span class="item-name">${itemToEquip.name}</span>.`;
+                }
+                player.equipment[itemTypeSlot] = itemToEquip; 
+                player.inventory.splice(itemIndexInInventory, 1); 
+            } else {
+                successMessage = `Cannot equip <span class="item-name">${itemToEquip.name}</span>: Unknown equipment slot type '${itemTypeSlot}'.`;
+                logEvent(`Error: Unknown equipment slot type '${itemTypeSlot}' for item ${itemToEquip.name}.`);
+                showMessageModal("Equipment Error", successMessage); 
+                return; 
+            }
+
+            logEvent(successMessage.replace(/<[^>]*>?/gm, '')); 
+            showMessageModal("Equipment Changed", successMessage); 
+            updateUI(); 
+            openItemBag(); 
+        }
+
+        function openShopModal() {
+            shopPlayerGoldElem.textContent = player.gold;
+            shopInventoryElem.innerHTML = ''; 
+
+            gameData.shopItems.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('shop-item-slot');
+                
+                let tooltipText = item.description || "A standard shop item.";
+                if (item.stats) {
+                     tooltipText += ` Stats: ${Object.entries(item.stats).map(([s,v]) => `${s.toUpperCase()}: ${v}`).join(', ')}`;
+                } else if (item.effect && item.effect.heal) {
+                    tooltipText += ` Effect: Heals ${item.effect.heal} HP.`;
+                } else if (item.effect && item.effect.mana) {
+                    tooltipText += ` Effect: Restores ${item.effect.mana} Mana.`;
+                }
+
+
+                itemDiv.innerHTML = `
+                    <span class="item-name">${item.name} (${item.type})</span>
+                    <span class="shop-item-cost">${item.cost}G</span>
+                    <button class="btn btn-buy" data-itemid="${item.id}" ${player.gold < item.cost ? 'disabled' : ''}>Buy</button>
+                    <div class="item-tooltip hidden">${tooltipText}</div>
+                `;
+                shopInventoryElem.appendChild(itemDiv);
+
+                itemDiv.querySelector('.btn-buy').addEventListener('click', (e) => {
+                    buyShopItem(e.target.dataset.itemid);
+                });
+            });
+            shopModal.classList.remove('hidden');
+        }
+
+        function closeShopModal() {
+            shopModal.classList.add('hidden');
+            eventInProgress = false; 
+            updateUI(); 
+        }
+
+        function buyShopItem(itemId) {
+            const itemToBuy = gameData.shopItems.find(item => item.id === itemId);
+            if (!itemToBuy) return;
+
+            if (player.gold >= itemToBuy.cost) {
+                player.gold -= itemToBuy.cost;
+                player.inventory.push({...itemToBuy}); 
+                logEvent(`You purchased ${itemToBuy.name} for ${itemToBuy.cost}G.`);
+                showMessageModal("Purchase Successful", `You bought ${itemToBuy.name}!`);
+                openShopModal(); 
+                updateCharacterSheet(); 
+            } else {
+                logEvent(`Not enough gold to buy ${itemToBuy.name}.`);
+                showMessageModal("Insufficient Gold", `You don't have enough gold for ${itemToBuy.name}.`);
+            }
+        }
+
+
+        advanceYearButtonUI.addEventListener('click', advanceYear);
+        saveGameButtonUI.addEventListener('click', () => {
+            logEvent("Game saved!"); 
+            saveGame();
+            showMessageModal("Game Saved", "Your progress has been saved to your browser."); 
+        });
+        modalCloseButton.addEventListener('click', () => messageModal.classList.add('hidden'));
+        dungeonExploreButton.addEventListener('click', dungeonExplore);
+        dungeonRestButton.addEventListener('click', dungeonRest);
+        dungeonFleeButton.addEventListener('click', dungeonFlee);
+        bondSpiritButton.addEventListener('click', attemptBondSpirit);
+        declineSpiritButton.addEventListener('click', declineBondSpirit);
+        itemBagButtonUI.addEventListener('click', openItemBag);
+        closeItemBagButton.addEventListener('click', closeItemBag);
+        closeShopButton.addEventListener('click', closeShopModal);
+
+
+        initGame();
+    </script>
+</body>
+</html>
