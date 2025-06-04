@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetRunner's Ascent: 2099 - Protocol V9 (Origins++)</title> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #1a202c; color: #e2e8f0; }
+        .game-container { max-width: 1100px; margin: 0.5rem auto; padding: 1rem; background-color: #2d3748; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .btn { padding: 0.5rem 0.8rem; border-radius: 0.375rem; font-weight: 600; transition: background-color 0.2s ease-in-out; cursor: pointer; border: none; font-size: 0.8rem; }
+        .btn-primary { background-color: #4a5568; color: #e2e8f0; }
+        .btn-primary:hover { background-color: #2c5282; }
+        
+        .btn-action, .btn-romance, .btn-world-choice, .btn-age-specific { background-color: #38a169; color: white; }
+        .btn-action:hover, .btn-romance:hover, .btn-world-choice:hover, .btn-age-specific:hover { background-color: #2f855a; }
+        
+        .btn-world-choice { background-color: #d69e2e; }
+        .btn-world-choice:hover { background-color: #b08026; }
+        
+        .btn-danger { background-color: #c53030; color: white; }
+        .btn-danger:hover { background-color: #9b2c2c; }
+        
+        .btn-info { background-color: #3182ce; color: white; }
+        .btn-info:hover { background-color: #2b6cb0; }
+        
+        .btn-combat { background-color: #97266d; color: white; }
+        .btn-combat:hover { background-color: #702459; }
+        
+        .btn-infiltration { background-color: #ff33cc; color: white; }
+        .btn-infiltration:hover { background-color: #c70099; }
+        
+        .btn-bounty { background-color: #00a8ff; color: white; }
+        .btn-bounty:hover { background-color: #0077b3; }
+
+        .btn-save { background-color: #b7791f; color: white; }
+        .btn-save:hover { background-color: #975a16; }
+        
+        .btn-inventory { background-color: #63b3ed; color: white; }
+        .btn-inventory:hover { background-color: #4299e1; }
+        
+        .btn-sell { background-color: #e53e3e; color: white; }
+        .btn-sell:hover { background-color: #c53030; }
+        
+        .btn-manage-crew { background-color: #4299e1; color:white;}
+        .btn-manage-crew:hover { background-color: #2b6cb0;}
+        
+        .btn-logs { background-color: #718096; color: white; }
+        .btn-logs:hover { background-color: #4a5568;}
+
+        .btn-ripperdoc { background-color: #a020f0; color: white; }
+        .btn-ripperdoc:hover { background-color: #7b19b3; }
+        .btn-arms-dealer { background-color: #b22222; color: white; }
+        .btn-arms-dealer:hover { background-color: #800000; }
+        .btn-tech-scavenger { background-color: #4682b4; color: white; }
+        .btn-tech-scavenger:hover { background-color: #36678f; }
+        
+        .character-sheet div, .log-entry { padding: 0.15rem 0.3rem; border-bottom: 1px solid #4a5568; font-size: 0.78rem; }
+        .character-sheet div:last-child, .log-entry:last-child { border-bottom: none; }
+        .title-font { font-family: 'Orbitron', sans-serif; }
+        .game-title-header { font-size: 1.1rem; line-height: 1.2; }
+        @media (min-width: 640px) { .game-title-header { font-size: 1.3rem; } }
+        @media (min-width: 1024px) { .game-title-header { font-size: 1.5rem; } }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 1rem; }
+        .modal-content { background-color: #2d3748; padding: 1.5rem; border-radius: 0.5rem; text-align: center; max-width: 90%; width: 500px; border: 2px solid #4a5568; } 
+        .hidden { display: none !important; }
+        .action-button-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.3rem; }
+        
+        .progress-bar-container { width: 100%; background-color: #4a5568; border-radius: 0.25rem; overflow: hidden; height: 0.8rem; margin-top: 0.15rem; }
+        .progress-bar { height: 100%; text-align: center; line-height: 0.8rem; color: white; font-size: 0.65rem; transition: width 0.3s ease-in-out; }
+        .hp-bar { background-color: #c53030; }
+        .xp-bar { background-color: #3182ce; }
+        .power-bar { background-color: #f6e05e; color: #1a202c !important; }
+        .stamina-bar { background-color: #48bb78; }
+        .relationship-bar { background-color: #d53f8c; }
+        .infiltration-time-bar { background-color: #ff33cc; }
+        
+        .stat-value { font-weight: bold; color: #a0aec0; }
+        .item-name { color: #63b3ed; }
+        .item-stat-summary { font-size: 0.7rem; color: #90cdf4; margin-left: 4px; }
+        .item-effect { color: #9f7aea; }
+        
+        .accolade-name, .title-name, .augmentation-name, .glitch-name { color: #f6e05e; cursor: pointer; text-decoration: underline; } 
+        .accolade-name:hover, .title-name:hover, .augmentation-name:hover, .glitch-name:hover { color: #faf089; }
+        
+        .credits-value { color: #f6e05e; font-weight: bold;}
+        
+        .origin-choice-card { 
+            background-color: #3e4c5f; /* Slightly different background for cards */
+            padding: 1rem; 
+            border-radius: 0.375rem; 
+            margin-bottom: 0.75rem; /* Increased margin */
+            cursor: pointer; 
+            border: 1px solid #4a5568;
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+        .origin-choice-card:hover { 
+            background-color: #4a5568; 
+            border-color: #63b3ed; /* Highlight border on hover */
+        }
+        .origin-choice-card h4 { font-size: 1.1em; margin-bottom: 0.3em; color: #ecc94b; } /* Title color for origin */
+        .origin-choice-card p { font-size: 0.85em; margin-bottom: 0.4em; line-height: 1.4; }
+        .origin-choice-card .origin-benefits { font-size: 0.75em; color: #90cdf4; margin-top: 0.5rem;}
+        .origin-choice-card .origin-quest-hint { font-size: 0.75em; color: #a0aec0; font-style: italic; margin-top: 0.3rem;}
+
+        .character-sheet h4 { font-size: 0.85em; margin-top: 0.5rem; }
+
+        #itemBagModal .item-slot, 
+        #vendorModal .vendor-item-slot, 
+        #sellInterface .sell-item-slot, 
+        #manageCrewModal .crew-manage-slot, 
+        #flatlineLogsModal .flatline-message-entry, 
+        #bountyBoardModal .bounty-entry {
+            background-color: #3f4a5a;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative; 
+        }
+        #flatlineLogsModal .flatline-message-entry, 
+        #bountyBoardModal .bounty-entry {
+            display: block; 
+            text-align: left;
+        }
+        #bountyBoardModal .bounty-entry button { margin-top: 0.5rem; }
+
+        #itemBagModal .item-slot .item-name-container, 
+        #vendorModal .vendor-item-slot .item-name-container, 
+        #sellInterface .sell-item-slot .item-name-container,
+        #manageCrewModal .crew-manage-slot .crew-member-name-container {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        #itemBagModal .item-slot .item-name, 
+        #vendorModal .vendor-item-slot .item-name, 
+        #sellInterface .sell-item-slot .item-name, 
+        #manageCrewModal .crew-manage-slot .crew-member-name {
+            font-weight: bold;
+            color: #63b3ed;
+        }
+        #manageCrewModal .crew-manage-slot .btn {
+             margin-left: 0.25rem;
+             padding: 0.2rem 0.4rem;
+             font-size: 0.7rem;
+        }
+
+        #itemBagModal .item-slot .btn-equip, 
+        #vendorModal .vendor-item-slot .btn-buy, 
+        #sellInterface .sell-item-slot .btn-sell, 
+        #manageCrewModal .crew-manage-slot .btn-dismiss-crew {
+            background-color: #38a169;
+            color: white;
+            margin-left: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+        }
+        #sellInterface .sell-item-slot .btn-sell, 
+        #manageCrewModal .crew-manage-slot .btn-dismiss-crew { background-color: #e53e3e; }
+        
+        #sellInterface .sell-item-slot .btn-sell:hover, 
+        #manageCrewModal .crew-manage-slot .btn-dismiss-crew:hover { background-color: #c53030; }
+        
+        #itemBagModal .item-slot .btn-equip:hover, 
+        #vendorModal .vendor-item-slot .btn-buy:hover {
+            background-color: #2f855a;
+        }
+        
+        .item-tooltip {
+            position: absolute;
+            background-color: #1a202c;
+            border: 1px solid #4a5568;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            z-index: 101; 
+            bottom: 100%; 
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            margin-bottom: 5px; 
+            pointer-events: none; 
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .item-slot:hover .item-tooltip, .vendor-item-slot:hover .item-tooltip, .sell-item-slot:hover .item-tooltip { 
+            opacity: 1;
+        }
+         #vendorModal .vendor-item-cost, #sellInterface .sell-item-price {
+            color: #f6e05e;
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+        }
+        #charCrewList .crew-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #3a4150;
+        }
+        #charCrewList .crew-entry:last-child {
+            border-bottom: none;
+        }
+        #charCrewList .crew-member-name {
+            font-weight: 600;
+            color: #90cdf4; 
+        }
+        #charCrewList .crew-member-role {
+            font-style: italic;
+            color: #a0aec0;
+        }
+        .vendor-tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #4a5568;
+        }
+        .vendor-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .vendor-tab.active {
+            border-bottom-color: #ecc94b;
+            color: #ecc94b;
+            font-weight: bold;
+        }
+        #flatlineScreen {
+            background-color: #2d3748;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            border: 2px solid #c53030;
+        }
+        #flatlineScreen h2 {
+            color: #c53030;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="game-container">
+        <h1 id="gameTitle" class="game-title-header font-bold text-center mb-3 title-font">
+            PROJECT NIGHTMARE: You Flatlined But a Ghost in the Machine Resurrected Your Ghost Code to Hack the Megacorps in a Chrome-Drenched Sprawl
+        </h1>
+        
+        <div id="initialLoadPrompt" class="text-center p-4 bg-gray-700 rounded mb-4 hidden">
+            <p>Loading system data... Please wait.</p>
+            </div>
+                
+        <div id="originSelection" class="hidden p-2 md:p-4"> <h2 id="originSelectionTitle" class="text-2xl md:text-3xl mb-4 text-center title-font text-yellow-400">Choose Your Past Life Protocol</h2>
+            <p id="originSelectionIntro" class="text-center mb-6 text-gray-300">The ghost code remembers fragments... a life before. This echo defines your starting point in the neon-scarred streets of Night City. Choose wisely, choom. It'll affect your skills, your gear, and the devils you know.</p>
+            <div id="originChoicesContainer" class="grid md:grid-cols-3 gap-4">
+                </div>
+        </div>
+        
+        <div id="eventDisplay" class="hidden mt-4">
+             <h2 id="eventTitleElem" class="text-xl md:text-2xl mb-2"></h2>
+             <p id="eventTextElem" class="mb-3 text-md md:text-lg"></p>
+             <button id="continueButtonElem" class="btn btn-primary mx-auto block">Jack In</button>
+        </div>
+        
+        <div id="flatlineScreen" class="hidden mt-4">
+            <h2 class="text-3xl title-font mb-4">SYSTEM CRASH // FLATLINED</h2>
+            <p id="finalFlatlineMessage" class="text-lg mb-6"></p>
+            <div class="flex justify-center gap-4">
+                <button id="newBuildButton" class="btn btn-primary">Recompile New Instance</button>
+                <button id="viewPastFlatlinesButton" class="btn btn-logs">Review Flatline Logs</button>
+            </div>
+        </div>
+
+
+        <div id="newLifeInterface" class="hidden mt-4">
+            <div class="grid md:grid-cols-3 gap-3">
+                <div id="characterSheet" class="md:col-span-1 bg-gray-700 p-2 rounded overflow-y-auto max-h-[90vh]">
+                    <h3 class="text-md font-semibold mb-1 title-font">Runner Data</h3>
+                    <div id="charDate"></div>
+                    <div id="charHandle"></div>
+                    <div id="charCyclesActive"></div>
+                    <div id="charCredits"></div> 
+                    <div id="charOrigin"></div>
+                    <div id="charStreetCred"></div>
+                    <div id="charThreatLevel"></div>
+                    <div id="charIntegrity"></div>
+                    <div id="charFocus"></div> 
+                    <div id="charCredXP"></div>
+                    <div id="charArchetype"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">AI Companion / Cyberdeck:</h4>
+                    <div id="charAICompanion"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Crew:</h4>
+                    <div id="charCrewList"></div> 
+                    <div id="charOffspring"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Base Attributes:</h4>
+                    <div id="charBaseAttributes"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Effective Attributes (w/ Cyberware & AI):</h4>
+                    <div id="charEffectiveAttributes"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Reputation Milestones:</h4>
+                    <div id="charAccolades"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Known Aliases:</h4>
+                    <div id="charTitles"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Installed Cyberware:</h4>
+                    <div id="charEquipment"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Valuable Data/Schematics:</h4>
+                    <div id="charTreasures"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">Augmentations (Perks):</h4>
+                    <div id="charAugmentations"></div>
+                    <h4 class="text-sm font-semibold mt-1 mb-0.5 title-font">System Glitches (Quirks):</h4>
+                    <div id="charGlitches"></div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <div id="worldActionsContainer">
+                         <h3 class="text-md font-semibold mb-1 title-font">Street Operations:</h3>
+                         <div id="actionsContainer" class="action-button-container mb-2">
+                         </div>
+                         <button id="visitRipperdocButtonUI" class="btn btn-ripperdoc w-full mb-2">Visit Ripperdoc Clinic</button>
+                         <button id="visitArmsDealerButtonUI" class="btn btn-arms-dealer w-full mb-2">Visit Arms Dealer</button>
+                         <button id="visitTechScavengerButtonUI" class="btn btn-tech-scavenger w-full mb-2">Visit Tech Scavenger</button>
+                         
+                         <button id="viewPastFlatlinesButtonUI" class="btn btn-logs w-full mb-2 hidden">Review Flatline Logs</button>
+                         <button id="saveProgressButtonUI" class="btn btn-save w-full mb-2">Save Data Shard</button>
+                         <button id="inventoryButtonUI" class="btn btn-inventory w-full mb-2">Inventory Stash</button>
+                         <button id="manageCrewButtonUI" class="btn btn-manage-crew w-full mb-2">Manage Crew</button>
+                         <button id="endCycleButtonUI" class="btn btn-primary w-full mb-2">End Current Cycle</button>
+                    </div>
+                    <div id="infiltrationInterface" class="hidden">
+                         <h3 id="zoneName" class="text-md font-semibold mb-1 title-font"></h3>
+                         <div id="zoneStatus"></div>
+                         <div id="infiltrationActionsContainer" class="action-button-container mt-1">
+                             <button id="infiltrationProceedButton" class="btn btn-infiltration">Breach Deeper</button>
+                             <button id="infiltrationPatchButton" class="btn btn-info">Patch Up (1 Cycle)</button>
+                             <button id="infiltrationAbortButton" class="btn btn-danger">Abort Op</button>
+                         </div>
+                    </div>
+                    <h3 class="text-md font-semibold mt-2 mb-1 title-font">Activity Log:</h3>
+                    <div id="eventLog" class="bg-gray-700 p-2 rounded max-h-40 overflow-y-auto text-xs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="messageModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modalTitle" class="text-xl title-font mb-3">System Alert</h3>
+            <p id="modalMessageText" class="text-md mb-4"></p>
+            <button id="modalCloseButton" class="btn btn-primary">Acknowledge</button>
+        </div>
+    </div>
+
+    <div id="aiCompanionModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="aiCompanionModalTitle" class="text-xl title-font mb-3">Neural Link Detected!</h3>
+            <p id="aiCompanionModalMessage" class="text-md mb-4">A rogue AI signature or advanced cyberdeck software is available. Integrate it into your systems?</p>
+            <div class="flex justify-center gap-4">
+                <button id="integrateAIButton" class="btn btn-action">Integrate Software</button>
+                <button id="rejectAIButton" class="btn btn-danger">Purge Signature</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="itemBagModal" class="modal hidden">
+        <div class="modal-content !text-left max-w-lg"> 
+            <h3 class="text-xl title-font mb-3 text-center">Inventory Stash</h3>
+            <div id="itemBagContent" class="max-h-80 overflow-y-auto pr-2"> 
+            </div>
+            <button id="closeItemBagButton" class="btn btn-primary mt-4 w-full">Close Stash</button>
+        </div>
+    </div>
+
+    <div id="vendorModal" class="modal hidden">
+        <div class="modal-content !text-left max-w-xl"> 
+            <h3 id="vendorName" class="text-xl title-font mb-3 text-center">Vendor Interface</h3>
+            <p class="text-center mb-2">Your Credits: <span id="vendorPlayerCredits" class="credits-value">0</span></p>
+            <div class="vendor-tabs">
+                <div id="buyDataTab" class="vendor-tab active">Acquire Gear</div> 
+                <div id="sellDataTab" class="vendor-tab">Offload Gear</div>      
+            </div>
+            <div id="vendorStock" class="vendor-tab-content max-h-80 overflow-y-auto pr-2">
+            </div>
+            <div id="sellInterface" class="vendor-tab-content hidden max-h-80 overflow-y-auto pr-2">
+            </div>
+            <button id="closeVendorButton" class="btn btn-primary mt-4 w-full">Disconnect</button>
+        </div>
+    </div>
+    
+    <div id="manageCrewModal" class="modal hidden">
+        <div class="modal-content !text-left max-w-lg">
+            <h3 class="text-xl title-font mb-3 text-center">Manage Crew Roster</h3>
+            <div id="manageCrewContent" class="max-h-80 overflow-y-auto pr-2">
+            </div>
+            <button id="closeManageCrewButton" class="btn btn-primary mt-4 w-full">Close Roster</button>
+        </div>
+    </div>
+
+    <div id="flatlineLogsModal" class="modal hidden">
+        <div class="modal-content !text-left max-w-lg">
+            <h3 class="text-xl title-font mb-3 text-center">Past Flatline Logs</h3>
+            <div id="flatlineLogsContent" class="max-h-80 overflow-y-auto pr-2">
+            </div>
+            <button id="closeFlatlineLogsButton" class="btn btn-primary mt-4 w-full">Close Logs</button>
+        </div>
+    </div>
+
+    <div id="bountyBoardModal" class="modal hidden">
+        <div class="modal-content !text-left max-w-lg">
+            <h3 class="text-xl title-font mb-3 text-center">Bounty Board Terminal</h3>
+            <div id="bountyPostingsContent" class="max-h-80 overflow-y-auto pr-2">
+            </div>
+            <div id="activeBountyDisplay" class="mt-4 p-2 bg-gray-600 rounded hidden">
+                <h4 class="font-semibold">Active Contract:</h4>
+                <p id="activeBountyTitle"></p>
+                <p id="activeBountyDescription" class="text-sm"></p>
+                <button id="completeBountyButton" class="btn btn-action mt-2">Attempt Contract</button>
+            </div>
+            <button id="closeBountyBoardButton" class="btn btn-primary mt-4 w-full">Log Off Terminal</button>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => { 
+        const SAVE_KEY = "cyberpunkNightmare_PN2099_v9_origins_plus";
+        const STREET_CRED_LEVELS = ["Zero-Cred", "Runner", "Edge-Runner", "Fixer", "Net-Assassin", "Urban Legend", "Ghost", "System God", "Nightmare"]; 
+        const STREET_CRED_REQUIREMENTS = { "Zero-Cred": { xp: 0, threatLevel: 0 }, /* ... */ };
+
+        // --- DOM ELEMENT REFERENCES ---
+        const initialLoadPromptElem = document.getElementById('initialLoadPrompt');
+        const originSelectionElem = document.getElementById('originSelection');
+        const originChoicesContainerElem = document.getElementById('originChoicesContainer');
+        
+        const charHandleElem = document.getElementById('charHandle');
+        const charCyclesActiveElem = document.getElementById('charCyclesActive');
+        const charCreditsElem = document.getElementById('charCredits');
+        const charOriginElem = document.getElementById('charOrigin');
+        // ... (add all other character sheet and modal elements you need)
+
+        const vendorModal = document.getElementById('vendorModal');
+        const vendorNameElem = document.getElementById('vendorName');
+        const vendorPlayerCreditsElem = document.getElementById('vendorPlayerCredits');
+        const vendorStockElem = document.getElementById('vendorStock');
+        const sellInterfaceElem = document.getElementById('sellInterface');
+        const buyDataTab = document.getElementById('buyDataTab');
+        const sellDataTab = document.getElementById('sellDataTab');
+        const closeVendorButton = document.getElementById('closeVendorButton');
+
+        const visitRipperdocButton = document.getElementById('visitRipperdocButtonUI');
+        const visitArmsDealerButton = document.getElementById('visitArmsDealerButtonUI');
+        const visitTechScavengerButton = document.getElementById('visitTechScavengerButtonUI');
+        
+        // --- GAME STATE ---
+        let player = {
+            handle: "Chummer",
+            cyclesActive: 0,
+            credits: 0,
+            origin: null, // This will be set by origin selection
+            streetCredLevel: STREET_CRED_LEVELS[0],
+            credXP: 0,
+            threatLevel: 10,
+            integrity: { current: 100, max: 100 },
+            focus: { current: 50, max: 50 },
+            archetype: "Netrunner", // Default or also chosen?
+            skills: {}, // e.g., { streetwise: 1, hacking: 1, pistols: 0 }
+            inventory: [],
+            cyberware: [],
+            augmentations: [],
+            glitches: [],
+            // ... other player stats
+        };
+
+        // --- ORIGIN DATA ---
+        const ORIGINS_DATA = [
+            {
+                id: 'streetKid',
+                title: 'Street Kid',
+                description: "Born in the gutter, raised by the concrete jungle of Night City's back alleys. You know the streets, the gangs, and how to disappear when the heat is on. Survival is your art form, and loyalty to your crew (if you have one) is everything. The corps see you as expendable, another rat in their maze – time to prove them wrong.",
+                benefitsText: "Starts with: Basic Pistol, Worn Street Clothes, +1 Streetwise Skill, +1 Athletics Skill, Contacts with a local Fixer.",
+                questHint: "A rival gang is encroaching on your turf, or maybe a 'friend' sold you out for a handful of creds. Time to make a statement.",
+                initialSkills: { streetwise: 1, athletics: 1, pistols: 1 },
+                initialCredits: 500,
+                initialGear: [{id: 'pistol_worn', name: 'Worn Repeater Pistol', type: 'Weapon'}, {id: 'clothes_street', name: 'Scuffed Street Leathers', type: 'Armor'}]
+            },
+            {
+                id: 'corpo',
+                title: 'Corpo Agent (Exiled)',
+                description: "You once walked the polished chrome halls of a megacorp, a cog in their profit-driven machine. Maybe you were a counter-intel specialist, a data analyst, or just another suit pushing agendas. But you saw too much, knew too much, or got stabbed in the back. Now you're burned, out in the cold with nothing but your wits and a target on your back.",
+                benefitsText: "Starts with: Corpo Business Suit (slightly damaged), Data Chip with encrypted (but potentially valuable) Corp Intel, +1 Hacking Skill, +1 Persuasion Skill, Lingering (and dangerous) Corp Enemies.",
+                questHint: "Your old employers want their data back, or perhaps a rival corp sees an opportunity in a disgraced agent. Lay low or fight back?",
+                initialSkills: { hacking: 1, persuasion: 1, bureaucracy: 1 }, // Bureaucracy for knowing Corp systems
+                initialCredits: 1000, // More starting cash, but more heat
+                initialGear: [{id: 'suit_corp', name: 'Ex-Corpo Business Suit', type: 'Armor'}, {id: 'datachip_intel', name: 'Encrypted Corp Datachip', type: 'Valuable Data'}]
+            },
+            {
+                id: 'nomad',
+                title: 'Nomad Wastelander',
+                description: "The glittering towers of Night City are a cage to you. You were raised in the Badlands, part of a Nomad clan that values family, freedom, and the roar of an engine above all else. You're a skilled mechanic, scavenger, and survivor, used to harsh realities. But something has driven you into the urban sprawl – a lost family member, a vital resource, or a vendetta.",
+                benefitsText: "Starts with: Durable Nomad Gear, Multi-tool, +1 Mechanics Skill, +1 Survival Skill, Basic knowledge of Badlands routes.",
+                questHint: "Your clan needs a rare piece of tech only found deep in corporate territory, or perhaps a rival clan has wronged yours and the trail leads into the city's heart.",
+                initialSkills: { mechanics: 1, survival: 1, driving: 1 }, // Driving/Piloting
+                initialCredits: 300,
+                initialGear: [{id: 'gear_nomad', name: 'Durable Nomad Fatigues', type: 'Armor'}, {id: 'tool_multi', name: 'Versatile Multi-tool', type: 'Tool'}]
+            }
+        ];
+
+        // --- INITIALIZATION ---
+        function initializeGame() {
+            // TODO: Check for saved game in localStorage
+            // if (localStorage.getItem(SAVE_KEY)) {
+            //     loadGame();
+            // } else {
+            //     displayOriginSelection();
+            // }
+            displayOriginSelection(); // For now, always start with origin selection
+            setupEventListeners();
+            logEvent("System Initialized. Awaiting Runner input.");
+        }
+
+        function displayOriginSelection() {
+            showInterface('originSelection');
+            originChoicesContainerElem.innerHTML = ''; // Clear previous choices
+            ORIGINS_DATA.forEach(origin => {
+                const card = document.createElement('div');
+                card.classList.add('origin-choice-card');
+                card.dataset.originId = origin.id; // Store id for click handling
+                card.innerHTML = `
+                    <h4 class="title-font">${origin.title}</h4>
+                    <p>${origin.description}</p>
+                    <p class="origin-benefits"><strong>Benefits:</strong> ${origin.benefitsText}</p>
+                    <p class="origin-quest-hint"><em>${origin.questHint}</em></p>
+                `;
+                card.addEventListener('click', () => selectOrigin(origin.id));
+                originChoicesContainerElem.appendChild(card);
+            });
+        }
+
+        function selectOrigin(originId) {
+            const selectedOriginData = ORIGINS_DATA.find(o => o.id === originId);
+            if (!selectedOriginData) {
+                console.error("Invalid origin ID selected:", originId);
+                return;
+            }
+
+            player.origin = selectedOriginData.title;
+            player.credits = selectedOriginData.initialCredits;
+            player.skills = { ...selectedOriginData.initialSkills }; // Copy initial skills
+            player.inventory = [ ...selectedOriginData.initialGear ]; // Copy initial gear
+
+            // USER REQUEST: Implement starting age (charCyclesActive) to be between 17-23
+            player.cyclesActive = Math.floor(Math.random() * (23 - 17 + 1)) + 17;
+            
+            // TODO: Potentially trigger a unique starting event/mission based on origin
+            logEvent(`Origin Protocol Activated: ${player.origin}. Runner instance compiled. ${player.cyclesActive} cycles active.`);
+            logEvent(`Initial Diagnostics: ${selectedOriginData.benefitsText}`);
+            logEvent(`Mission Directive Hint: ${selectedOriginData.questHint}`);
+            
+            showInterface('newLifeInterface');
+            updateCharacterSheet();
+        }
+        
+        function updateCharacterSheet() {
+            if(charHandleElem) charHandleElem.innerHTML = `Handle: <span class="stat-value">${player.handle}</span>`;
+            if(charCyclesActiveElem) charCyclesActiveElem.innerHTML = `Cycles Active: <span class="stat-value">${player.cyclesActive}</span>`;
+            if(charCreditsElem) charCreditsElem.innerHTML = `Credits (Є$): <span class="credits-value">${player.credits}</span>`;
+            if(charOriginElem) charOriginElem.innerHTML = `Origin: <span class="stat-value">${player.origin}</span>`;
+            // ... update all other character sheet elements, including skills, inventory/equipment display
+        }
+
+        function logEvent(message) {
+            const eventLog = document.getElementById('eventLog');
+            if (eventLog) {
+                const entry = document.createElement('div');
+                entry.classList.add('log-entry');
+                const timestamp = player.cyclesActive > 0 ? `[Cycle ${player.cyclesActive}]` : `[System Boot]`;
+                entry.textContent = `${timestamp}: ${message}`;
+                eventLog.prepend(entry);
+                if (eventLog.children.length > 50) { 
+                    eventLog.removeChild(eventLog.lastChild);
+                }
+            }
+        }
+
+        function showInterface(interfaceId) {
+            const interfaces = ['initialLoadPrompt', 'originSelection', 'eventDisplay', 'flatlineScreen', 'newLifeInterface'];
+            interfaces.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) elem.classList.add('hidden');
+            });
+            const targetInterface = document.getElementById(interfaceId);
+            if (targetInterface) targetInterface.classList.remove('hidden');
+        }
+        
+        // --- VENDOR/SHOP LOGIC (Simplified) ---
+        let currentVendorType = null;
+        function openVendorModal(vendorType, vendorTitle) {
+            currentVendorType = vendorType;
+            vendorNameElem.textContent = vendorTitle;
+            vendorPlayerCreditsElem.textContent = player.credits;
+            populateVendorStock();
+            populateSellInterface();
+            vendorModal.classList.remove('hidden');
+            setActiveVendorTab('buy');
+        }
+
+        function populateVendorStock() {
+            vendorStockElem.innerHTML = '';
+            let itemsToShow = [];
+            // Example: Define actual stock items for each vendor type in a separate data structure
+            if (currentVendorType === 'ripperdoc') {
+                itemsToShow = [ {id: 'cyb_001', name: 'Basic Optic Nerve', type: 'Cyberware', cost: 750, description: '+1 Perception'}, /* ... */ ];
+            } else if (currentVendorType === 'armsDealer') {
+                 itemsToShow = [ {id: 'wpn_001', name: 'Budget Sidearm', type: 'Weapon', cost: 300, description: 'Deals minor damage.'}, /* ... */ ];
+            } else if (currentVendorType === 'techScavenger') {
+                 itemsToShow = [ {id: 'itm_001', name: 'Stim Injector', type: 'Consumable', cost: 100, description: 'Restores 20 Integrity.'}, /* ... */ ];
+            }
+            itemsToShow.forEach(item => { /* ... create and append item slot ... */ });
+        }
+
+        function populateSellInterface() {
+            sellInterfaceElem.innerHTML = '';
+             if (player.inventory.length === 0) {
+                sellInterfaceElem.innerHTML = `<p class="text-gray-400 text-center p-4">Your inventory is empty.</p>`;
+                return;
+            }
+            player.inventory.forEach((item, index) => { /* ... create and append sellable item slot ... */ });
+        }
+        
+        function setActiveVendorTab(tabName) {
+            buyDataTab.classList.toggle('active', tabName === 'buy');
+            sellDataTab.classList.toggle('active', tabName === 'sell');
+            vendorStockElem.classList.toggle('hidden', tabName !== 'buy');
+            sellInterfaceElem.classList.toggle('hidden', tabName !== 'sell');
+            if (tabName === 'sell') populateSellInterface();
+        }
+
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            if(visitRipperdocButton) visitRipperdocButton.addEventListener('click', () => openVendorModal('ripperdoc', 'Ripperdoc Clinic'));
+            if(visitArmsDealerButton) visitArmsDealerButton.addEventListener('click', () => openVendorModal('armsDealer', 'Arms Dealer'));
+            if(visitTechScavengerButton) visitTechScavengerButton.addEventListener('click', () => openVendorModal('techScavenger', 'Tech Scavenger'));
+            
+            if(buyDataTab) buyDataTab.addEventListener('click', () => setActiveVendorTab('buy'));
+            if(sellDataTab) sellDataTab.addEventListener('click', () => setActiveVendorTab('sell'));
+            if(closeVendorButton) closeVendorButton.addEventListener('click', () => vendorModal.classList.add('hidden'));
+            // ... (Add other listeners as needed)
+        }
+
+        // --- START THE GAME ---
+        initializeGame();
+
+    });
+    </script>
+</body>
+</html>
